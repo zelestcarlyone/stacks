@@ -2,7 +2,9 @@ import threading
 import logging
 import time
 from datetime import datetime
-from stacks.downloader.anna_downloader import AnnaDownloader
+from stacks.downloader.downloader import AnnaDownloader
+from stacks.downloader.utils import extract_md5
+
 from stacks.constants import FAST_DOWNLOAD_API_URL, DOWNLOAD_PATH, INCOMPLETE_PATH
 
 
@@ -138,8 +140,6 @@ class DownloadWorker:
             self.logger.info(f"Starting download: {item['title']} ({item['md5']})")
             
             try:
-                # Pass the title from the queue item to ensure correct filename
-                # Now receives tuple: (success, used_fast_download)
                 success, used_fast_download = self.downloader.download(
                     item['md5'], 
                     resume_attempts=resume_attempts,

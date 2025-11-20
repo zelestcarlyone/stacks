@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from stacks.config import Config
-from stacks.constants import WWW_ROOT
+from stacks.constants import WWW_PATH
 from stacks.server.queue import DownloadQueue
 from stacks.server.worker import DownloadWorker
 from stacks.utils.logutils import setup_logging
@@ -12,8 +12,8 @@ def create_app(config_path: str):
     """Create and configure the Flask application."""
     app = Flask(
         __name__,
-        template_folder=WWW_ROOT,
-        static_folder=WWW_ROOT,
+        template_folder=WWW_PATH,
+        static_folder=WWW_PATH,
         static_url_path=""
     )
     CORS(app, supports_credentials=True)

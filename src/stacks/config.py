@@ -2,7 +2,7 @@ import threading
 import yaml
 import os
 import logging
-from stacks.constants import CONFIG_PATH, DEFAULT_USERNAME, DEFAULT_PASSWORD
+from stacks.constants import CONFIG_FILE, DEFAULT_USERNAME, DEFAULT_PASSWORD
 
 from stacks.security.auth import (
     generate_api_key,
@@ -12,7 +12,7 @@ from stacks.security.auth import (
 
 class Config:
     """Configuration loader with live update support"""
-    def __init__(self, config_path = CONFIG_PATH):
+    def __init__(self, config_path = CONFIG_FILE):
         self.config_path = config_path
         self.lock = threading.Lock()
         self.load()

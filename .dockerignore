@@ -2,6 +2,7 @@
 __pycache__
 *.pyc
 .env
+.venv
 *.md
 *.log
 .vscode

@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-"""
-Stacks - Advanced downloader for Anna's Archive
-"""
-
 import argparse
 import re
 import sys
@@ -17,22 +12,8 @@ import json
 from pathlib import Path
 from urllib.parse import urlparse, urljoin, unquote
 from bs4 import BeautifulSoup
-from stacks.constants import CACHE_PATH
-
-# Cookie cache path
-COOKIE_CACHE_PATH = Path(CACHE_PATH) / "cookie.json"
-
-
-def extract_md5(input_string):
-    """Extract MD5 hash from URL or return the MD5 if it's already one."""
-    if re.match(r'^[a-f0-9]{32}$', input_string.lower()):
-        return input_string.lower()
-    
-    match = re.search(r'/md5/([a-f0-9]{32})', input_string)
-    if match:
-        return match.group(1)
-    
-    return None
+from stacks.constants import COOKIE_CACHE_FILE
+from downloader.utils import extract_md5
 
 
 class AnnaDownloader:
@@ -102,9 +83,9 @@ class AnnaDownloader:
     
     def _load_cached_cookies(self):
         """Load cookies from cache file."""
-        if COOKIE_CACHE_PATH.exists():
+        if COOKIE_CACHE_FILE.exists():
             try:
-                with open(COOKIE_CACHE_PATH, 'r') as f:
+                with open(COOKIE_CACHE_FILE, 'r') as f:
                     data = json.load(f)
                     # Check if cookies are recent (< 24 hours old)
                     cached_time = data.get('timestamp', 0)
@@ -123,8 +104,8 @@ class AnnaDownloader:
     def _save_cookies_to_cache(self, cookies_dict):
         """Save cookies to cache file."""
         try:
-            COOKIE_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-            with open(COOKIE_CACHE_PATH, 'w') as f:
+            COOKIE_CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            with open(COOKIE_CACHE_FILE, 'w') as f:
                 json.dump({
                     'timestamp': time.time(),
                     'cookies': cookies_dict
@@ -972,83 +953,3 @@ class AnnaDownloader:
         except Exception as e:
             self.logger.error(f"Failed to refresh fast download info: {e}")
             return False
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="Download files from Anna's Archive",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  # Basic download
-  %(prog)s 1d6fd221af5b9c9bffbd398041013de8
-  
-  # With FlareSolverr (RECOMMENDED - unlocks ALL mirrors)
-  %(prog)s MD5 --flaresolverr-url http://192.168.1.200:8191
-  
-  # With aria2 multi-source (parallel downloads from all mirrors)
-  %(prog)s MD5 --enable-aria2 --flaresolverr-url http://192.168.1.200:8191
-  
-  # Pre-warm cookies (speeds up subsequent downloads)
-  %(prog)s MD5 --flaresolverr-url http://192.168.1.200:8191 --prewarm
-        """
-    )
-    
-    parser.add_argument('input', nargs='?', help='MD5 hash or Anna\'s Archive URL')
-    parser.add_argument('-o', '--output', default='./downloads', help='Output directory')
-    parser.add_argument('--mirror', help='Preferred mirror domain')
-    parser.add_argument('--fast-key', help='Anna\'s Archive membership key')
-    parser.add_argument('--flaresolverr-url', help='FlareSolverr URL (e.g., http://192.168.1.200:8191)')
-    parser.add_argument('--flaresolverr-timeout', type=int, default=60000, help='FlareSolverr timeout (ms)')
-    parser.add_argument('--enable-aria2', action='store_true', help='Enable aria2 multi-source')
-    parser.add_argument('--aria2-min-size', type=int, default=2, help='Min file size for aria2 (MB)')
-    parser.add_argument('--aria2-chunk-size', default='1M', help='aria2 chunk size')
-    parser.add_argument('--prewarm', action='store_true', help='Pre-warm cookies (with FlareSolverr)')
-    parser.add_argument('-v', '--verbose', action='store_true', help='Verbose logging')
-    
-    args = parser.parse_args()
-    
-    log_level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(
-        level=log_level,
-        format='[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-    
-    fast_config = None
-    if args.fast_key:
-        fast_config = {
-            'enabled': True,
-            'key': args.fast_key,
-            'api_url': 'https://annas-archive.org/dyn/api/fast_download.json',
-            'path_index': 0,
-            'domain_index': 0
-        }
-    
-    downloader = AnnaDownloader(
-        output_dir=args.output,
-        fast_download_config=fast_config,
-        flaresolverr_url=args.flaresolverr_url,
-        flaresolverr_timeout=args.flaresolverr_timeout,
-        enable_aria2=args.enable_aria2,
-        aria2_min_size_mb=args.aria2_min_size,
-        aria2_chunk_size=args.aria2_chunk_size
-    )
-    
-    # Pre-warm cookies if requested
-    if args.prewarm and args.flaresolverr_url:
-        downloader.prewarm_cookies()
-        if not args.input:
-            print("✓ Cookies pre-warmed and cached")
-            sys.exit(0)
-    
-    if not args.input:
-        parser.print_help()
-        sys.exit(1)
-    
-    success, _ = downloader.download(args.input, prefer_mirror=args.mirror)
-    sys.exit(0 if success else 1)
-
-
-if __name__ == '__main__':
-    main()

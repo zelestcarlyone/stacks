@@ -8,7 +8,7 @@ import logging
 
 from pathlib import Path
 
-from stacks.constants import CONFIG_PATH, DEFAULT_CONFIG_PATH, PROJECT_ROOT, LOG_PATH, DOWNLOAD_PATH
+from stacks.constants import CONFIG_FILE, DEFAULT_CONFIG_FILE, PROJECT_ROOT, LOG_PATH, DOWNLOAD_PATH
 
 # ANSI color codes (Dracula theme)
 INFO = "\033[38;2;139;233;253m"       # cyan
@@ -41,7 +41,7 @@ def print_logo(version: str):
 def ensure_directories():
     """Ensure essential directories exist."""
     dirs = [
-        Path(CONFIG_PATH).parent,
+        Path(CONFIG_FILE).parent,
         Path(LOG_PATH),
         Path(DOWNLOAD_PATH),
     ]
@@ -54,8 +54,8 @@ def setup_config(config_path):
     Ensure a config file exists.
     """
     # Use either provided config, or default
-    cfg_path = Path(config_path) if config_path else Path(CONFIG_PATH)
-    default_cfg = Path(DEFAULT_CONFIG_PATH)
+    cfg_path = Path(config_path) if config_path else Path(CONFIG_FILE)
+    default_cfg = Path(DEFAULT_CONFIG_FILE)
 
     print("◼ Checking configuration...")
     sys.stdout.flush()

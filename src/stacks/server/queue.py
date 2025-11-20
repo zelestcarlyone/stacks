@@ -3,12 +3,12 @@ from pathlib import Path
 import json
 import logging
 from datetime import datetime
-from stacks.constants import QUEUE_STORAGE
+from stacks.constants import QUEUE_FILE
 
 class DownloadQueue:
     def __init__(self, config):
         self.config = config
-        self.storage_file = Path(QUEUE_STORAGE)
+        self.storage_file = Path(QUEUE_FILE)
         self.storage_file.parent.mkdir(parents=True, exist_ok=True)
         self.queue = []
         self.current_download = None
