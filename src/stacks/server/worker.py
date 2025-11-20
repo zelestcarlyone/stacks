@@ -3,10 +3,7 @@ import logging
 import time
 from datetime import datetime
 from stacks.downloader.downloader import AnnaDownloader
-from stacks.downloader.utils import extract_md5
-
 from stacks.constants import FAST_DOWNLOAD_API_URL, DOWNLOAD_PATH, INCOMPLETE_PATH
-
 
 class DownloadWorker:
     def __init__(self, queue, config):

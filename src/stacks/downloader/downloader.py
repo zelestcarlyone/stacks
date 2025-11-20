@@ -5,11 +5,12 @@ from pathlib import Path
 from stacks.utils.md5utils import extract_md5
 from stacks.downloader.cookies import _load_cached_cookies, _save_cookies_to_cache, _prewarm_cookies
 from stacks.downloader.aria2 import download_with_aria2
-from stacks.downloader.direct import orchestrate_download, download_direct
+from stacks.downloader.direct import download_direct
 from stacks.downloader.fast_download import try_fast_download, get_fast_download_info, refresh_fast_download_info
 from stacks.downloader.flaresolver import solve_with_flaresolverr
 from stacks.downloader.html import get_download_links, parse_download_link_from_html
 from stacks.downloader.mirrors import download_from_mirror, get_all_download_urls
+from stacks.downloader.orchestrator import orchestrate_download
 from stacks.downloader.utils import get_unique_filename
 
 class AnnaDownloader:
@@ -76,7 +77,13 @@ class AnnaDownloader:
         else:
             self.logger.warning("FlareSolverr not configured - slow_download servers will be SKIPPED")
             self.logger.info("Using external mirrors only (Libgen, library.lol, etc.)")
+
+    # Aria2
+    def download_with_aria2(self, download_urls, title=None, resume_attempts=3):
+        return download_with_aria2(self, download_urls, title, resume_attempts)
+
     
+    # Cookies
     def load_cached_cookies(self):
         return _load_cached_cookies(self)
     
@@ -86,41 +93,52 @@ class AnnaDownloader:
     def prewarm_cookies(self):
         return _prewarm_cookies(self)
     
-    def extract_md5(self, input_string):
-        return extract_md5(input_string)
     
-    def get_unique_filename(self, base_path):
-        return get_unique_filename(self, base_path)
-    
-    def solve_with_flaresolverr(self, url):
-        return solve_with_flaresolverr(self, url)
-    
-    def parse_download_link_from_html(self, html_content, md5):
-        return parse_download_link_from_html(self, html_content, md5)
-
-    def get_all_download_urls(self, md5, solve_ddos=True, max_urls=10):
-        return get_all_download_urls(self, md5, solve_ddos, max_urls)
-    
-    def download_with_aria2(self, download_urls, title=None, resume_attempts=3):
-        return download_with_aria2(self, download_urls, title, resume_attempts)
-
-    def try_fast_download(self, md5):
-        return try_fast_download(self, md5)
-
+    # Direct
     def download_direct(self, download_url, title=None, total_size=None, supports_resume=True, resume_attempts=3):
         return download_direct(self, download_url, title, total_size, supports_resume, resume_attempts)
     
-    def get_download_links(self, md5):
-        return get_download_links(self, md5)
     
-    def download_from_mirror(self, mirror_url, mirror_type, md5, title=None, resume_attempts=3):
-        return download_from_mirror(self, mirror_url, mirror_type, md5, title, resume_attempts)
-    
+    # Download orchestrator
     def download(self, input_string, prefer_mirror=None, resume_attempts=3, title_override=None):
         return orchestrate_download(self, input_string, prefer_mirror, resume_attempts, title_override)
-    
+ 
+ 
+    # Fast Download
+    def try_fast_download(self, md5):
+        return try_fast_download(self, md5)
+
     def get_fast_download_info(self):
         return get_fast_download_info(self)
 
     def refresh_fast_download_info(self, force=False):
         return refresh_fast_download_info(self, force)
+    
+    
+    # Flare solver
+    def solve_with_flaresolverr(self, url):
+        return solve_with_flaresolverr(self, url)
+    
+    
+    # HTML
+    def parse_download_link_from_html(self, html_content, md5):
+        return parse_download_link_from_html(self, html_content, md5)
+
+    def get_download_links(self, md5):
+        return get_download_links(self, md5)
+    
+    
+    # Mirrors
+    def get_all_download_urls(self, md5, solve_ddos=True, max_urls=10):
+        return get_all_download_urls(self, md5, solve_ddos, max_urls)
+    
+    def download_from_mirror(self, mirror_url, mirror_type, md5, title=None, resume_attempts=3):
+        return download_from_mirror(self, mirror_url, mirror_type, md5, title, resume_attempts)
+
+
+    # Utils
+    def extract_md5(self, input_string):
+        return extract_md5(input_string)
+    
+    def get_unique_filename(self, base_path):
+        return get_unique_filename(self, base_path)
