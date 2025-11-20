@@ -1,12 +1,17 @@
-import re
-
-def extract_md5(input_string):
-    """Extract MD5 hash from URL or return the MD5 if it's already one."""
-    if re.match(r'^[a-f0-9]{32}$', input_string.lower()):
-        return input_string.lower()
+def get_unique_filename(d, base_path):
+    """Generate a unique filename by adding (1), (2), etc. if file exists."""
+    if not base_path.exists():
+        return base_path
     
-    match = re.search(r'/md5/([a-f0-9]{32})', input_string)
-    if match:
-        return match.group(1)
+    stem = base_path.stem
+    suffix = base_path.suffix
+    parent = base_path.parent
     
-    return None
+    counter = 1
+    while True:
+        new_name = f"{stem} ({counter}){suffix}"
+        new_path = parent / new_name
+        if not new_path.exists():
+            d.logger.info(f"File exists, using unique name: {new_name}")
+            return new_path
+        counter += 1
