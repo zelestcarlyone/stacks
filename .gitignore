@@ -33,8 +33,9 @@ coverage.xml
 release.sh
 todo.md
 
-# Project paths
-download/
-config/
-logs/
-cahce/
+# Project
+/download/
+/config/
+/logs/
+/cahce/
+RELEASE_CHECKLIST.md

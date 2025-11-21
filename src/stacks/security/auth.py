@@ -93,9 +93,18 @@ def require_auth(f):
     Require EITHER:
     - A logged-in session (web UI), OR
     - A valid X-API-Key / ?api_key=... token (external tools).
+    - The authentification to be disabled in the config
     """
     @wraps(f)
     def wrapper(*args, **kwargs):
+        # Allow for disabled auth altogether
+        cfg = current_app.stacks_config
+        try:
+            if cfg.getboolean("login", "disable"):
+                return f(*args, **kwargs)
+        except Exception:
+            pass
+        
         # Web session takes precedence
         if session.get("logged_in"):
             return f(*args, **kwargs)
@@ -105,7 +114,6 @@ def require_auth(f):
             request.headers.get("X-API-Key")
             or request.args.get("api_key")
         )
-        cfg = current_app.stacks_config
         valid_key = cfg.get("api", "key")
 
         if provided_key and valid_key and provided_key == valid_key:

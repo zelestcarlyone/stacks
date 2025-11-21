@@ -7,6 +7,7 @@ server:
 login:
   username: null  # Auto-generated on first run
   password: null  # Auto-generated on first run (hashed)
+  disable: false  # Disable authentification
 
 api:
   key: null  # Auto-generated on first run

@@ -1,0 +1,66 @@
+server:
+  host:
+    types: [IP, URL]
+    default: "0.0.0.0"
+  port:
+    types: [PORT_RANGE]
+    default: 7788
+
+login:
+  username:
+    types: [STRING]
+    default: admin
+  password:
+    types: [STRING]
+    default: Stacks
+  disable:
+    types: [BOOL]
+    default: false
+
+api:
+  key:
+    types: [32_BIT_KEY]
+    default: GENERATE_32_BIT_KEY
+  session_secret:
+    types: [32_BIT_KEY]
+    default: GENERATE_32_BIT_KEY
+
+downloads:
+  delay:
+    types: [INTEGER]
+    default: 2
+  retry_count:
+    types: [INTEGER]
+    default: 3
+  resume_attempts:
+    types: [INTEGER]
+    default: 3
+
+fast_download:
+  enabled:
+    types: [BOOL]
+    default: false
+  key:
+    types: [STRING, NULL]
+    default: null
+
+flaresolverr:
+  enabled:
+    types: [BOOL]
+    default: false
+  url:
+    types: [IP, URL, NULL]
+    default: null
+  timeout:
+    types: [INTEGER]
+    default: 60
+
+queue:
+  max_history:
+    types: [INTEGER]
+    default: 100
+
+logging:
+  level:
+    types: [LOGGING]
+    default: "INFO"
