@@ -1,4 +1,5 @@
 import time
+from stacks.constants import KNOWN_MD5
 
 def try_fast_download(d, md5):
     """Attempt fast download via membership API."""
@@ -58,9 +59,8 @@ def refresh_fast_download_info(d, force=False):
             return True
     
     try:
-        test_md5 = 'd6e1dc51a50726f00ec438af21952a45'
         params = {
-            'md5': test_md5,
+            'md5': KNOWN_MD5,
             'key': d.fast_download_key,
             'path_index': 0,
             'domain_index': 0
