@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from stacks.config import Config
+from stacks.config.config import Config
 from stacks.constants import WWW_PATH
 from stacks.server.queue import DownloadQueue
 from stacks.server.worker import DownloadWorker

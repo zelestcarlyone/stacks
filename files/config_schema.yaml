@@ -9,10 +9,10 @@ server:
 login:
   username:
     types: [STRING]
-    default: admin
+    default: USERNAME
   password:
-    types: [STRING]
-    default: Stacks
+    types: [BCRYPTHASH]
+    default: HASH_PASSWORD
   disable:
     types: [BOOL]
     default: false

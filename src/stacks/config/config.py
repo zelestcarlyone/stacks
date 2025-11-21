@@ -1,93 +1,46 @@
 import threading
 import yaml
-import os
-import logging
-from stacks.constants import CONFIG_FILE, DEFAULT_USERNAME, DEFAULT_PASSWORD
-
-from stacks.security.auth import (
-    generate_api_key,
-    hash_password,
-    is_valid_bcrypt_hash,
-)
+from stacks.constants import CONFIG_FILE, CONFIG_SCHEMA_FILE
+from stacks.config.validate import _validate, ensure_login_credentials
 
 class Config:
     """Configuration loader with live update support"""
-    def __init__(self, config_path = CONFIG_FILE):
+
+    def __init__(self, config_path=CONFIG_FILE, schema_path=CONFIG_SCHEMA_FILE):
         self.config_path = config_path
+        self.schema_path = schema_path
         self.lock = threading.Lock()
+
+        self.load_schema()
         self.load()
-        self.ensure_api_key()
-        self.ensure_session_secret()
+
+        self.data = self.validate(self.data, self.schema)
         self.ensure_login_credentials()
-    
+
     def load(self):
-        """Load configuration from file"""
+        """Load configuration from file, or create empty dict."""
         with self.lock:
-            with open(self.config_path, 'r') as f:
-                self.data = yaml.safe_load(f)
-    
+            try:
+                with open(self.config_path, "r") as f:
+                    self.data = yaml.safe_load(f) or {}
+            except FileNotFoundError:
+                self.data = {}
+
+    def load_schema(self):
+        """Load schema from file."""
+        with self.lock:
+            with open(self.schema_path, "r") as f:
+                self.schema = yaml.safe_load(f)
+
     def save(self):
-        """Save configuration to file"""
+        """Save configuration to file."""
         with self.lock:
-            with open(self.config_path, 'w') as f:
+            with open(self.config_path, "w") as f:
                 yaml.dump(self.data, f, default_flow_style=False, sort_keys=False)
-    
-    def ensure_api_key(self):
-        """Ensure API key exists, generate if not present"""
-        api_key = self.get('api', 'key')
-        if not api_key:
-            new_key = generate_api_key()
-            self.set('api', 'key', value=new_key)
-            self.save()
-            logger = logging.getLogger('config')
-            logger.info("Generated new API key")
-    
-    def ensure_session_secret(self):
-        """Ensure session secret exists, generate if not present"""
-        session_secret = self.get('api', 'session_secret')
-        if not session_secret:
-            new_secret = generate_api_key()  # Same format, 32 chars
-            self.set('api', 'session_secret', value=new_secret)
-            self.save()
-            logger = logging.getLogger('config')
-            logger.info("Generated new session secret")
-    
-    def ensure_login_credentials(self):
-        """Ensure login credentials exist, generate from env vars or defaults"""
-        logger = logging.getLogger('config')
-        username = self.get('login', 'username')
-        password_hash = self.get('login', 'password')
-        
-        # Check for RESET_ADMIN environment variable
-        reset_admin = os.environ.get('RESET_ADMIN', '').lower() == 'true'
-        
-        # Determine if we need to reset/set credentials
-        needs_reset = (
-            reset_admin or
-            not username or
-            not password_hash or
-            not is_valid_bcrypt_hash(password_hash)
-        )
-        
-        if needs_reset:
-            # Get credentials from environment or use defaults
-            env_username = os.environ.get('USERNAME', DEFAULT_USERNAME)
-            env_password = os.environ.get('PASSWORD', DEFAULT_PASSWORD)
-            
-            # Hash the password
-            hashed = hash_password(env_password)
-            
-            # Save to config
-            self.set('login', 'username', value=env_username)
-            self.set('login', 'password', value=hashed)
-            self.save()
-            
-            if reset_admin:
-                logger.warning("RESET_ADMIN=true detected - Admin password has been reset")
-            elif not username or not password_hash:
-                logger.info(f"Initialized login credentials - username: {env_username}")
-            else:
-                logger.warning("Invalid password hash detected - credentials reset from environment")
+
+    def validate(self, data, schema):
+        """Invoke the schema-validator to normalize the config."""
+        return _validate(data, schema)
     
     def get(self, *keys, default=None):
         """Get nested config value"""
@@ -101,6 +54,10 @@ class Config:
                 if value is None:
                     return default
             return value
+    
+    def ensure_login_credentials(self):
+        return ensure_login_credentials(self)
+    
     
     def set(self, *keys, value):
         """Set nested config value"""
