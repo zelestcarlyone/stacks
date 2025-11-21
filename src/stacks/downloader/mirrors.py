@@ -71,7 +71,7 @@ def get_all_download_urls(d, md5, solve_ddos=True, max_urls=10):
     # Shuffle to spread load across mirrors
     random.shuffle(unique_urls)
     
-    d.logger.info(f"✓ Collected {len(unique_urls)} unique download URLs (shuffled)")
+    d.logger.info(f"Collected {len(unique_urls)} unique download URLs (shuffled)")
     return unique_urls
 
 def download_from_mirror(d, mirror_url, mirror_type, md5, title=None, resume_attempts=3):

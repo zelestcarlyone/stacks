@@ -110,7 +110,7 @@ def download_direct(d, download_url, title=None, total_size=None, supports_resum
                 final_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(str(temp_path), str(final_path))
                 
-                d.logger.info(f"✓ Downloaded: {final_path.name}")
+                d.logger.info(f"Downloaded: {final_path.name}")
                 return final_path
                 
             except requests.exceptions.ChunkedEncodingError:

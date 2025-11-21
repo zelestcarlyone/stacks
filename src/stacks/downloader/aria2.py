@@ -106,7 +106,7 @@ def download_with_aria2(d, download_urls, title=None, resume_attempts=3):
                 
                 final_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(str(downloaded_file), str(final_path))
-                d.logger.info(f"✓ Downloaded: {final_path.name}")
+                d.logger.info(f"Downloaded: {final_path.name}")
                 return final_path
             else:
                 d.logger.error("aria2 completed but file not found")

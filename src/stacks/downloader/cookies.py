@@ -47,7 +47,7 @@ def _prewarm_cookies(d):
     
     if success and cookies:
         _save_cookies_to_cache(d, cookies)
-        d.logger.info("✓ Cookies pre-warmed and cached")
+        d.logger.info("Cookies pre-warmed and cached")
         return True
 
     d.logger.warning("Failed to pre-warm cookies")

@@ -22,7 +22,7 @@ def orchestrate_download(d, input_string, prefer_mirror=None, resume_attempts=3,
             d.logger.info("Using fast download")
             filepath = d.download_direct(result, title=title, resume_attempts=resume_attempts)
             if filepath:
-                d.logger.info("✓ Fast download successful")
+                d.logger.info("Fast download successful")
                 return True, True
             else:
                 d.logger.warning("Fast download failed, falling back to mirrors")
@@ -37,7 +37,7 @@ def orchestrate_download(d, input_string, prefer_mirror=None, resume_attempts=3,
         if len(all_urls) >= 2:
             filepath = d.download_with_aria2(all_urls, title=title, resume_attempts=resume_attempts)
             if filepath:
-                d.logger.info("✓ aria2 multi-source download successful")
+                d.logger.info("aria2 multi-source download successful")
                 return True, False
             else:
                 d.logger.warning("aria2 failed, falling back to single-source")
@@ -72,7 +72,7 @@ def orchestrate_download(d, input_string, prefer_mirror=None, resume_attempts=3,
         )
         
         if filepath:
-            d.logger.info("✓ Download successful")
+            d.logger.info("Download successful")
             return True, False
         else:
             d.logger.warning(f"Mirror {mirror_name} failed")

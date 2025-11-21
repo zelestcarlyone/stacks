@@ -75,11 +75,11 @@ class DownloadWorker:
                 import requests
                 response = requests.get(flaresolverr_url, timeout=5)
                 if response.status_code == 200:
-                    self.logger.info("✓ FlareSolverr connection successful")
+                    self.logger.info("FlareSolverr connection successful")
                 else:
-                    self.logger.warning(f"⚠ FlareSolverr returned status {response.status_code}")
+                    self.logger.warning(f"FlareSolverr returned status {response.status_code}")
             except Exception as e:
-                self.logger.error(f"✗ Failed to connect to FlareSolverr: {e}")
+                self.logger.error(f"Failed to connect to FlareSolverr: {e}")
                 self.logger.warning("Downloads will fall back to external mirrors only")
         
         self.logger.info("Downloader recreated with updated config")
