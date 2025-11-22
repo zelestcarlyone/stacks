@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Stacks - Download Manager</title>
-    <link rel="stylesheet" href="./css/style.css" />
-    <link rel="stylesheet" href="./css/toast.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v=TIMESTAMP) }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/toast.css', v=TIMESTAMP) }}" />
     <link rel="icon" type="image/svg+xml" href="./images/icon.svg" />
   </head>
   <body>
@@ -283,8 +283,8 @@
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="./script/clipboard.min.js"></script>
-    <script src="./script/toasts.js"></script>
-    <script src="./script/app.js"></script>
+    <script src="{{ url_for('static', filename='script/clipboard.min.js', v=TIMESTAMP) }}"></script>
+    <script src="{{ url_for('static', filename='script/toasts.js', v=TIMESTAMP) }}"></script>
+    <script src="{{ url_for('static', filename='script/app.js', v=TIMESTAMP) }}"></script>
   </body>
 </html>

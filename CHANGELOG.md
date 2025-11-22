@@ -9,7 +9,11 @@
   - Updated the download logic to better catch download links
   - Downloads are randomized to spread load across multiple servers
 - Added the ability to disable authentification
-- Added toasts to web interface instead of annoying pop-ups
+- Removed alerts and replaced them with a new toast system
+
+### Minor changes
+
+- Added cashe busting to script and css
 
 ### Architecture
 

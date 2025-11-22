@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from stacks.config.config import Config
-from stacks.constants import WWW_PATH
+from stacks.constants import WWW_PATH, TIMESTAMP
 from stacks.server.queue import DownloadQueue
 from stacks.server.worker import DownloadWorker
 from stacks.utils.logutils import setup_logging
@@ -44,6 +44,11 @@ def create_app(config_path: str):
     app.stacks_host = config.get("server", "host", default="0.0.0.0")
     app.stacks_port = config.get("server", "port", default=7788)
 
+
+    # ---- Cache busting makes me feel good ----
+    @app.context_processor
+    def inject_constants():
+        return dict(TIMESTAMP=TIMESTAMP)
 
     # ---- Register all API routes ----
     register_api(app)

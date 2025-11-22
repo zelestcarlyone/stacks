@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+import time
 
 # Directory paths
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -43,3 +44,6 @@ RE_32_BIT_KEY = re.compile(r"^[A-Za-z0-9_-]{32}$")
 
 # Known MD5 for testing
 KNOWN_MD5 = "d6e1dc51a50726f00ec438af21952a45"
+
+# Cache busting
+TIMESTAMP = time.time()
