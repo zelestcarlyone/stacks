@@ -94,10 +94,6 @@ function loadSettings() {
 }
 
 function regenerateApiKey() {
-  if (!confirm("Generate a new API key?\n\nYour old key will stop working immediately. You'll need to update all external tools (Tampermonkey, etc.) with the new key.")) {
-    return;
-  }
-
   apiFetch("/api/key/regenerate", {
     method: "POST",
   })
@@ -105,14 +101,26 @@ function regenerateApiKey() {
     .then((data) => {
       if (data.success) {
         document.getElementById("display-api-key").value = data.api_key;
-        alert("New API key generated!\n\nDon't forget to update your external tools with the new key.");
+        toasts.show({
+          title: "API Key",
+          message: "New API key generated!\n\nDon't forget to update your external tools with the new key.",
+          type: "success",
+        });
       } else {
-        alert("Failed to regenerate API key: " + (data.error || "Unknown error"));
+        toasts.show({
+          title: "API Key",
+          message: "Failed to regenerate API key: " + (data.error || "Unknown error"),
+          type: "error",
+        });
       }
     })
     .catch((err) => {
       console.error("Failed to regenerate API key:", err);
-      alert("Failed to regenerate API key: " + err.message);
+      toasts.show({
+        title: "API Key",
+        message: "Failed to regenerate API key: " + err.message,
+        type: "error",
+      });
     });
 }
 
@@ -167,19 +175,34 @@ function saveSettings() {
     .then((data) => {
       if (data.success) {
         if (newPassword) {
-          alert("Settings saved successfully! Your password has been updated. Changes are now active.");
+          toasts.show({
+            title: "Settings",
+            message: "Settings saved successfully! Your password has been updated. Changes are now active.",
+            type: "success",
+          });
         } else {
-          alert("Settings saved successfully! Changes are now active.");
+          toasts.show({
+            title: "Settings",
+            message: "Settings saved successfully! Changes are now active.",
+            type: "success",
+          });
         }
-        // Clear password field
         document.getElementById("setting-new-password").value = "";
       } else {
-        alert("Failed to save settings: " + (data.error || "Unknown error"));
+        toasts.show({
+          title: "Settings",
+          message: "Failed to save settings: " + (data.error || "Unknown error"),
+          type: "error",
+        });
       }
     })
     .catch((err) => {
       console.error("Failed to save settings:", err);
-      alert("Failed to save settings: " + err.message);
+      toasts.show({
+        title: "Settings",
+        message: "Failed to save settings: " + err.message,
+        type: "error",
+      });
     });
 }
 
@@ -421,8 +444,6 @@ function updateHistoryList(history) {
 }
 
 function removeFromQueue(md5) {
-  if (!confirm("Remove this item from queue?")) return;
-
   apiFetch("/api/queue/remove", {
     method: "POST",
     body: JSON.stringify({ md5: md5 }),
@@ -433,8 +454,6 @@ function removeFromQueue(md5) {
 }
 
 function clearQueue() {
-  if (!confirm("Clear entire queue? This cannot be undone.")) return;
-
   apiFetch("/api/queue/clear", { method: "POST" })
     .then((r) => r.json())
     .then(() => updateStatus())
@@ -442,8 +461,6 @@ function clearQueue() {
 }
 
 function clearHistory() {
-  if (!confirm("Clear entire history? This cannot be undone.")) return;
-
   apiFetch("/api/history/clear", { method: "POST" })
     .then((r) => r.json())
     .then(() => updateStatus())
@@ -460,7 +477,11 @@ function retryFailed(md5) {
       if (data.success) {
         updateStatus();
       } else {
-        alert(data.message || "Failed to retry");
+        toasts.show({
+          title: "Retry",
+          message: data.message || "Failed to retry",
+          type: "error",
+        });
       }
     })
     .catch((err) => console.error("Failed to retry download:", err));

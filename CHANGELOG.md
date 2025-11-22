@@ -9,6 +9,7 @@
   - Updated the download logic to better catch download links
   - Downloads are randomized to spread load across multiple servers
 - Added the ability to disable authentification
+- Added toasts to web interface instead of annoying pop-ups
 
 ### Architecture
 

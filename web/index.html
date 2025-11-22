@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Stacks - Download Manager</title>
     <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/toast.css" />
     <link rel="icon" type="image/svg+xml" href="./images/icon.svg" />
   </head>
   <body>
@@ -265,7 +266,25 @@
         <button class="btn btn-secondary retry-btn" onclick="" style="display: none">Retry</button>
       </div>
     </template>
+
+    <!-- Toast Template -->
+    <template id="toast-template">
+      <div class="toast">
+        <div class="toast-icon"></div>
+        <div class="toast-content">
+          <div class="toast-title"></div>
+          <div class="toast-message"></div>
+        </div>
+        <button class="toast-close">×</button>
+        <div class="toast-progress"></div>
+      </div>
+    </template>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
     <script src="./script/clipboard.min.js"></script>
+    <script src="./script/toasts.js"></script>
     <script src="./script/app.js"></script>
   </body>
 </html>
