@@ -25,7 +25,8 @@ FAST_DOWNLOAD_API_URL = "https://annas-archive.org/dyn/api/fast_download.json"
 # Logging
 LOG_FORMAT = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
 LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-LOG_LEVELS = ["INFO", "DEFAUT", "WARN", "DEBUG"]
+LOG_LEVELS = ["INFO", "ERROR", "WARN", "DEBUG"]
+LOG_VIEW_LENGTH = 1000
 
 # Default credentials
 DEFAULT_USERNAME = "admin"
