@@ -33,6 +33,35 @@ body {
   overflow-y: scroll;
 }
 
+.add-item .card.input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px;
+}
+
+.add-item .add-label {
+  font-size: 18px;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+.add-item input[type="text"] {
+  flex: 1;
+  padding: 7px;
+  border-radius: 6px;
+  border: 1px solid var(--purple);
+  background: var(--bg2);
+  color: var(--foreground);
+  font-size: 14px;
+}
+
+.add-item button.btn {
+  padding: 8px 18px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
 .comment {
   margin-top: 3px;
   margin-bottom: 8px;

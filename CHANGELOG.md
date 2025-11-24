@@ -8,10 +8,12 @@
   - Added ability to use Flaresolverr
   - Updated the download logic to better catch download links
   - Downloads are randomized to spread load across multiple servers
+  - Downloader identifies files files that are unreasonably small and tries next server
 - Added the ability to disable authentification
 - Removed alerts and replaced them with a new toast system
 - Made shutdowns more graceful
 - Log Console added to front-end
+- Added a bar for adding downloads manually
 
 ### Minor changes
 

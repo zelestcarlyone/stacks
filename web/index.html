@@ -48,6 +48,14 @@
       </nav>
 
       <div id="downloads-tab" class="tab-content active">
+        <div class="add-item">
+          <div class="card input-row">
+            <label for="manual-add" class="add-label">Add download</label>
+            <input type="text" id="manual-add" placeholder="Enter an Anna's Archive MD5 or URL..." maxlength="256" />
+            <button class="btn btn-success">Add</button>
+          </div>
+        </div>
+
         <!-- Current Download -->
         <div id="current-download" style="display: none">
           <div class="current-download">
@@ -220,10 +228,11 @@
           </div>
         </section>
       </div>
+
       <!-- Console -->
       <div id="console-tab" class="tab-content">
         <section class="card">
-        <div id="console">ABC123</div>
+          <div id="console">ABC123</div>
         </section>
       </div>
 
