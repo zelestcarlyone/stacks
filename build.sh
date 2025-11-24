@@ -12,6 +12,7 @@ RESET="\033[0m"                     # reset
 SERVICE="stacks"
 FORCE=false
 COMPOSE="docker compose"
+NO_CACHE=false
 VERSION=$(cat ./VERSION)
 
 # Used to make sure we're stopping and removing the right images and containers
@@ -23,6 +24,9 @@ for arg in "$@"; do
     case "$arg" in
         --force|-f)
             FORCE=true
+        ;;
+        --no-cache|-n)
+            NO_CACHE=true
         ;;
     esac
 done
@@ -74,8 +78,17 @@ if docker image inspect "$SERVICE" >/dev/null 2>&1; then
     fi
 fi
 
-echo -e "${PURPLE}► Building image...${RESET}"
-$COMPOSE build "$SERVICE" --build-arg VERSION=$VERSION --build-arg FINGERPRINT=$FINGERPRINT
+if [ "$NO_CACHE" = true ]; then
+    echo -e "${ORANGE}► Building image (without cache)...${RESET}"
+    $COMPOSE build --no-cache "$SERVICE" \
+        --build-arg VERSION=$VERSION \
+        --build-arg FINGERPRINT=$FINGERPRINT
+else
+    echo -e "${PURPLE}► Building image...${RESET}"
+    $COMPOSE build "$SERVICE" \
+        --build-arg VERSION=$VERSION \
+        --build-arg FINGERPRINT=$FINGERPRINT
+fi
 
 echo -e "${PURPLE}► Starting service...${RESET}"
 $COMPOSE up -d "$SERVICE"

@@ -4,16 +4,17 @@
 
 ### Features
 
+- Added a bar for adding downloads manually
+- Added the ability to disable authentification
+- Log console added to front-end
+- Made shutdowns more graceful
 - Refectored large parts of the downloader:
   - Added ability to use Flaresolverr
   - Updated the download logic to better catch download links
   - Downloads are randomized to spread load across multiple servers
   - Downloader identifies files files that are unreasonably small and tries next server
-- Added the ability to disable authentification
+  - Added a more secure way of finding the correct file name
 - Removed alerts and replaced them with a new toast system
-- Made shutdowns more graceful
-- Log Console added to front-end
-- Added a bar for adding downloads manually
 
 ### Minor changes
 
@@ -21,8 +22,8 @@
 
 ### Architecture
 
-- Broke out everything into modules
 - Config file now works through a self-regenerating schema that validates the config on load and fixes errors on the fly
+- Broke out everything into modules
 
 ## [1.0.2] - 2025-11-18
 

@@ -12,6 +12,7 @@ server:
 login:
   username: null # Auto-generated on first run
   password: null # Auto-generated on first run (bcrypt hashed)
+  disable: false # Disable all security requirements (API keys and login/password)
 
 api:
   key: null # Auto-generated on first run
@@ -25,6 +26,11 @@ downloads:
 fast_download:
   enabled: false
   key: null
+
+flaresolverr:
+  enabled: false # Enables or disables the use of flaresolverr
+  url: null # The url and port of your flaresolverr instance
+  timeout: 60 # How long to wait for flaresolverr to return a result
 
 queue:
   max_history: 100

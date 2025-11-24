@@ -18,12 +18,15 @@ WORKDIR /opt/stacks
 COPY requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
+
+RUN rm -rf ./requirements.txt
+
+
 # Copy application files
 COPY src ./src
 COPY VERSION .
 COPY web ./web
 COPY files ./files
-
 
 # ========================================
 # Stage 2: Distroless Runtime (Python 3)
@@ -33,7 +36,7 @@ FROM gcr.io/distroless/python3-debian12
 ARG VERSION=unknown
 ARG FINGERPRINT=unknown
 
-# Labels again (distroless keeps its own layer)
+# Labels
 LABEL version=$VERSION
 LABEL fingerprint=$FINGERPRINT
 
@@ -48,6 +51,6 @@ COPY --from=builder /opt/stacks /opt/stacks
 
 EXPOSE 7788
 
-# No shell → must be exec form
-# -u flag runs Python in unbuffered mode for immediate output
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD ["/usr/bin/python3", "-c", "import urllib.request, json, sys; r=json.load(urllib.request.urlopen('http://127.0.0.1:7788/api/health')); sys.exit(0 if r.get('status')=='ok' else 1)"]
+
 ENTRYPOINT ["/usr/bin/python3", "-m", "stacks.main"]

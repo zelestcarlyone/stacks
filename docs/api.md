@@ -13,10 +13,11 @@ All API endpoints (except `/api/health` and `/api/version`) require authenticati
 
 ### System
 
-| Endpoint       | Method | Auth Required | Description                               |
-| -------------- | ------ | ------------- | ----------------------------------------- |
-| `/api/health`  | GET    | No            | Health check - returns `{"status": "ok"}` |
-| `/api/version` | GET    | No            | Get current Stacks version                |
+| Endpoint       | Method | Auth Required      | Description                               |
+| -------------- | ------ | ------------------ | ----------------------------------------- |
+| `/api/health`  | GET    | No                 | Health check - returns `{"status": "ok"}` |
+| `/api/logs`    | GET    | Session or API key | Get the last 1000 lines of the system log |
+| `/api/version` | GET    | No                 | Get current Stacks version                |
 
 ### Authentication & Keys
 
