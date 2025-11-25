@@ -1,25 +1,46 @@
+networks:
+  default:
+    name: stacks
+
 services:
   stacks:
     build: .
     image: stacks:latest
     container_name: stacks
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
     ports:
       # Change the left value if 7788 is already taken
       - "7788:7788"
     volumes:
       # REQUIRED: Change these paths to match your system
-       - /path/to/config:/opt/stacks/config     # Configuration files
-       - /path/to/download:/opt/stacks/download # Downloaded files
-       - /path/to/logs:/opt/stacks/logs         # Log files
+      - "/path/to/config:/opt/stacks/config"       # Configuration folder
+      - "/path/to/download:/opt/stacks/download"   # Downloaded files
+      - "/path/to/logs:/opt/stacks/logs"           # Log files
     restart: unless-stopped
     environment:
       # Only applies to first run, after that the config.yaml has all relevant info
       - USERNAME=admin    # Feel free to change this
       - PASSWORD=stacks   # Please change this!
-      
       # Uncomment to reset admin password to above values
       # - RESET_ADMIN=true
+
+      # If you're using the included flaresolverr, this will automatically connect it.
+      # If you already got it running, you can change this address to match your local
+      # setup, or delete this variable and set it up inside Stacks.
+      - SOLVERR_URL=flaresolverr:8191
 
       # Set your timezone, a comprehensive list can be found here:
       # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
       - TZ=UTC
+
+  # Optional, but recommended, bypasses Cloudflare and DDoS-Guard to allow slow download
+  # to go more smoothly
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    ports:
+      - '8191:8191'
+    environment:
+      - LOG_LEVEL=info
+    restart: unless-stopped
