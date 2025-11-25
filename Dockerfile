@@ -53,6 +53,6 @@ COPY --from=builder /opt/stacks/ /opt/stacks/
 EXPOSE 7788
 
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-    CMD ["/usr/bin/python3", "/opt/stacks/stacks.pex", "--healthcheck"]
+    CMD ["/usr/bin/python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7788/api/health')"]
 
 ENTRYPOINT ["/usr/bin/python3", "/opt/stacks/stacks.pex"]
