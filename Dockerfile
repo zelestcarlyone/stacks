@@ -27,7 +27,7 @@ RUN pex \
     -o stacks.pex
 
 # Cleanup: remove everything except the PEX and runtime files
-RUN rm -rf deps src requirements.txt
+RUN rm -rf deps src web/scss requirements.txt
 
 # ========================================
 # Stage 2: Distroless Python3

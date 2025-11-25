@@ -28,9 +28,9 @@ fast_download:
   key: null
 
 flaresolverr:
-  enabled: false # Enables or disables the use of flaresolverr
-  url: null # The url and port of your flaresolverr instance
-  timeout: 60 # How long to wait for flaresolverr to return a result
+  enabled: false # Enables or disables the use of FlareSolverr
+  url: null # The url and port of your FlareSolverr instance
+  timeout: 60 # How long to wait for FlareSolverr to return a result
 
 queue:
   max_history: 100
@@ -50,6 +50,7 @@ environment:
   - TZ=UTC # Timezone for logs and timestamps
   - USERNAME=admin # Initial username (seeds config on first run)
   - PASSWORD=stacks # Initial password (seeds config on first run)
+  - SOLVERR_URL=flaresolverr:8191 # Embedds the URL and port for FlareSolverr on first run.
   # - RESET_ADMIN=true  # Uncomment to force password reset
 ```
 

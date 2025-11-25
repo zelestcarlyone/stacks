@@ -60,7 +60,7 @@ flaresolverr:
     default: false
   url:
     types: [IP, URL, NULL]
-    default: null
+    default: FLARESOLVERR
     max_length: 256
   timeout:
     types: [INTEGER]

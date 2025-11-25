@@ -53,9 +53,13 @@ class AnnaDownloader:
         self.fast_download_refresh_cooldown = 3600  # 1 hour
         
         # FlareSolverr configuration
+        # Normalize URL: add http:// if no scheme is present
+        if flaresolverr_url and not flaresolverr_url.startswith(('http://', 'https://')):
+            flaresolverr_url = f"http://{flaresolverr_url}"
+
         self.flaresolverr_url = flaresolverr_url
         self.flaresolverr_timeout = flaresolverr_timeout
-                
+
         if flaresolverr_url:
             self.logger.info(f"FlareSolverr enabled: {flaresolverr_url}")
             self.logger.info("Using ALL download sources (Anna's Archive slow_download + external mirrors)")

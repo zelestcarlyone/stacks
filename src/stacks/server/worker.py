@@ -79,11 +79,16 @@ class DownloadWorker:
                 self.logger.error(f"Failed to test fast download key: {e}")
         
         # Test FlareSolverr if enabled
-        if flaresolverr_enabled:
-            self.logger.info(f"Testing FlareSolverr connection at {flaresolverr_url}...")
+        if flaresolverr_enabled and flaresolverr_url:
+            # Normalize URL for testing (same as downloader does)
+            test_url = flaresolverr_url
+            if not test_url.startswith(('http://', 'https://')):
+                test_url = f"http://{test_url}"
+
+            self.logger.info(f"Testing FlareSolverr connection at {test_url}...")
             try:
                 import requests
-                response = requests.get(flaresolverr_url, timeout=5)
+                response = requests.get(test_url, timeout=5)
                 if response.status_code == 200:
                     self.logger.info("FlareSolverr connection successful")
                 else:

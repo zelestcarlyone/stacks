@@ -2,7 +2,7 @@ import re
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 from stacks.downloader.sites.zlib import parse_zlib_download_link, is_zlib_domain
-from constants import LEGAL_FILES
+from stacks.constants import LEGAL_FILES
 
 def parse_download_link_from_html(d, html_content, md5, mirror_url=None):
         """

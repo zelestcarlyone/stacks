@@ -90,8 +90,8 @@ else
         --build-arg FINGERPRINT=$FINGERPRINT
 fi
 
-echo -e "${PURPLE}► Starting service...${RESET}"
-$COMPOSE up -d "$SERVICE"
+echo -e "${PURPLE}► Starting all services...${RESET}"
+$COMPOSE up -d
 
 if docker ps --format '{{.Names}}' | grep -qx "$SERVICE"; then
     echo -e "${GREEN}[√] Service started successfully!${RESET}"

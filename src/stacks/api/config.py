@@ -21,16 +21,20 @@ def api_config_test_flaresolverr():
     data = request.json
     test_url = data.get('url', 'http://localhost:8191')
     timeout = data.get('timeout', 10)
-    
+
     if not test_url:
         return jsonify({
             'success': False,
             'error': 'No URL provided'
         }), 400
-    
+
+    # Normalize URL: add http:// if no scheme is present
+    if not test_url.startswith(('http://', 'https://')):
+        test_url = f"http://{test_url}"
+
     try:
         import requests
-        
+
         # Try to connect to FlareSolverr's health endpoint
         response = requests.get(test_url, timeout=timeout)
         
