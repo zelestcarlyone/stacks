@@ -32,8 +32,8 @@ class Toasts {
 
     // Icon mapping
     const icon = node.querySelector(".toast-icon");
-    icon.textContent = this._iconFor(type);
-
+    icon.setAttribute("data-icon", type);
+    
     // Close button
     node.querySelector(".toast-close").addEventListener("click", () => {
       this._removeToast(node);
@@ -42,7 +42,7 @@ class Toasts {
     return node;
   }
 
-_removeToast(toast) {
+  _removeToast(toast) {
     toast.classList.remove("show");
     toast.classList.add("hide");
     const handler = (e) => {
@@ -52,21 +52,6 @@ _removeToast(toast) {
       }
     };
     toast.addEventListener("transitionend", handler);
-  }
-
-  _iconFor(type) {
-    switch (type) {
-      case "success":
-        return "✔️";
-      case "error":
-        return "❌";
-      case "warning":
-        return "⚠️";
-      case "info":
-        return "⚠️";
-      default:
-        return "ℹ️";
-    }
   }
 }
 

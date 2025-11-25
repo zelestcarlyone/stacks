@@ -1,3 +1,10 @@
+@font-face {
+  font-family: "remixicon";
+  src: url("../fonts/remixicon.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 h1 {
   color: #bd93f9;
   font-size: 2.75em;
@@ -32,24 +39,51 @@ h2 {
 }
 
 [data-icon]:before {
+  font-family: "remixicon" !important;
   content: "";
   display: inline-block;
   margin: 0 0.1em;
+}
+[data-icon][data-icon=close-large]:before {
+  content: "\f4c7";
+}
+[data-icon][data-icon=close-large-line]:before {
+  content: "\f4c8";
+}
+[data-icon][data-icon=warning]:before {
+  content: "\eca0";
+}
+[data-icon][data-icon=warning-line]:before {
+  content: "\eca1";
+}
+[data-icon][data-icon=error]:before {
+  content: "\eb96";
+}
+[data-icon][data-icon=error-line]:before {
+  content: "\eb97";
+}
+[data-icon][data-icon=success]:before {
+  content: "\eb80";
+}
+[data-icon][data-icon=success-line]:before {
+  content: "\eb81";
+}
+[data-icon][data-icon=info]:before {
+  content: "\ee58";
+}
+[data-icon][data-icon=info-line]:before {
+  content: "\ee59";
+}
+[data-icon][data-icon=github]:before {
+  content: "\edca";
+}
+[data-icon][data-icon=github-line]:before {
+  content: "\edcb";
 }
 [data-icon][data-icon=tampermonkey]:before {
   background: currentColor;
   mask: url("../images/tampermonkey.svg") no-repeat center;
   -webkit-mask: url("../images/tampermonkey.svg") no-repeat center;
-  mask-size: contain;
-  -webkit-mask-size: contain;
-  width: 0.9em;
-  height: 0.9em;
-  vertical-align: -0.125em;
-}
-[data-icon][data-icon=github]:before {
-  background: currentColor;
-  mask: url("../images/github.svg") no-repeat center;
-  -webkit-mask: url("../images/github.svg") no-repeat center;
   mask-size: contain;
   -webkit-mask-size: contain;
   width: 0.9em;

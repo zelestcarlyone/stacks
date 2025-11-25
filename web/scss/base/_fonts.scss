@@ -1,6 +1,24 @@
 // ============================================================================
 // TYPOGRAPHY
 // ============================================================================
+$font-path: "fonts" !default;
+$font-icon: "remixicon";
+
+@mixin font-face($family, $file, $weight: 400, $style: normal, $unicode: null) {
+  @font-face {
+    font-family: $family;
+    src: url("../#{$font-path}/#{$file}.woff2") format("woff2");
+    font-weight: $weight;
+    font-style: $style;
+    font-display: swap;
+    
+    @if $unicode {
+      unicode-range: $unicode;
+    }
+  }
+}
+
+@include font-face("remixicon", "remixicon");
 
 h1 {
   color: $purple;

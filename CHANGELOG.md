@@ -24,6 +24,7 @@
 
 - Config file now works through a self-regenerating schema that validates the config on load and fixes errors on the fly
 - Broke out everything into modules
+- Switched from CSS to SCSS for maintainability
 
 ## [1.0.2] - 2025-11-18
 
