@@ -58,6 +58,17 @@
     font-size: 0.9em;
   }
 
+  .status-message {
+    margin-top: $spacing-xs;
+    padding: $spacing-xs $spacing-sm;
+    background: rgba(139, 233, 253, 0.1);
+    border-left: 3px solid $cyan;
+    border-radius: $border-radius-sm;
+    font-size: 0.9em;
+    color: $cyan;
+    font-weight: 500;
+  }
+
   .time {
     margin-top: $spacing-sm;
     opacity: 0.9;

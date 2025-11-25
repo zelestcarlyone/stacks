@@ -1,82 +1,7 @@
-import random
-
-def get_all_download_urls(d, md5, solve_ddos=True, max_urls=10):
-    title, links = d.get_download_links(md5)
-    download_urls = []
-    
-    d.logger.info(f"Collecting download URLs from {len(links)} mirrors...")
-    
-    for i, link in enumerate(links):
-        if max_urls > 0 and len(download_urls) >= max_urls:
-            d.logger.info(f"Collected maximum {max_urls} URLs, stopping")
-            break
-        
-        try:
-            if link['type'] == 'slow_download':
-                # Slow downloads REQUIRE FlareSolverr
-                if not d.flaresolverr_url:
-                    d.logger.debug(f"Skipping slow_download {i+1} (no FlareSolverr)")
-                    continue
-                
-                d.logger.debug(f"Resolving slow_download {i+1}/{len(links)} with FlareSolverr")
-                
-                success, cookies, html_content = d.solve_with_flaresolverr(link['url'])
-                if not success:
-                    continue
-
-                download_link = d.parse_download_link_from_html(html_content, md5, link['url'])
-                if download_link:
-                    download_urls.append(download_link)
-                    d.logger.debug(f"Resolved: {download_link}")
-            
-            elif link['type'] == 'external_mirror':
-                d.logger.debug(f"Resolving external mirror {i+1}/{len(links)}")
-                
-                try:
-                    response = d.session.get(link['url'], timeout=30)
-                    
-                    # If 403, try with FlareSolverr
-                    if response.status_code == 403 and d.flaresolverr_url:
-                        d.logger.debug(f"Mirror {i+1} returned 403, trying FlareSolverr")
-                        success, cookies, html_content = d.solve_with_flaresolverr(link['url'])
-                        if success:
-                            download_link = d.parse_download_link_from_html(html_content, md5, link['url'])
-                            if download_link:
-                                download_urls.append(download_link)
-                                d.logger.debug(f"Resolved with FlareSolverr: {download_link}")
-                        continue
-
-                    download_link = d.parse_download_link_from_html(response.text, md5, link['url'])
-                    if download_link:
-                        download_urls.append(download_link)
-                        d.logger.debug(f"Resolved: {download_link}")
-                
-                except Exception as e:
-                    d.logger.debug(f"External mirror {i+1} error: {e}")
-                    continue
-        
-        except Exception as e:
-            d.logger.debug(f"Could not resolve mirror {i+1}: {e}")
-            continue
-    
-    # Remove duplicates
-    seen = set()
-    unique_urls = []
-    for url in download_urls:
-        if url not in seen:
-            seen.add(url)
-            unique_urls.append(url)
-    
-    # Shuffle to spread load across mirrors
-    random.shuffle(unique_urls)
-    
-    d.logger.info(f"Collected {len(unique_urls)} unique download URLs (shuffled)")
-    return unique_urls
-
 def download_from_mirror(d, mirror_url, mirror_type, md5, title=None, resume_attempts=3):
     """
     Download from any mirror with stale cookie handling.
-    
+
     Logic:
     - slow_download: ALWAYS use FlareSolverr (skip if not configured)
     - external_mirror: Try direct, use FlareSolverr on 403 (with cookie refresh)
@@ -87,45 +12,80 @@ def download_from_mirror(d, mirror_url, mirror_type, md5, title=None, resume_att
             if not d.flaresolverr_url:
                 d.logger.warning("Skipping slow_download - FlareSolverr not configured")
                 return None
-            
+
+            if hasattr(d, 'status_callback'):
+                d.status_callback("Solving CAPTCHA with FlareSolverr...")
+
             d.logger.debug("Accessing slow download (via FlareSolverr)")
-            
+
             success, cookies, html_content = d.solve_with_flaresolverr(mirror_url)
             if not success:
                 d.logger.error("FlareSolverr failed")
                 return None
 
+            if hasattr(d, 'status_callback'):
+                d.status_callback("Extracting download link...")
+
             download_link = d.parse_download_link_from_html(html_content, md5, mirror_url)
             if not download_link:
                 d.logger.warning("Could not find download link")
                 return None
-            
+
+            if hasattr(d, 'status_callback'):
+                d.status_callback("Downloading file...")
+
             d.logger.info("Found download URL, downloading...")
-            return d.download_direct(download_link, title=title, resume_attempts=resume_attempts)
+            return d.download_direct(download_link, title=title, resume_attempts=resume_attempts, md5=md5)
         
         else:  # external_mirror
             d.logger.debug(f"Accessing external mirror: {mirror_url}")
-            
+
             try:
                 response = d.session.get(mirror_url, timeout=30)
-                
+
                 # If 403, refresh cookies and retry
                 if response.status_code == 403:
                     if d.flaresolverr_url:
-                        d.logger.warning("Got 403 - using FlareSolverr for full solve (pre-warmed cookies disabled)")
-                        # DISABLED FOR TESTING: Pre-warm new cookies
-                        # if d.prewarm_cookies():
-                        #     # Retry once with fresh cookies
-                        #     response = d.session.get(mirror_url, timeout=30)
-                        #
-                        #     if response.status_code == 403:
-                        #         d.logger.warning("Still got 403 after cookie refresh, using FlareSolverr for full solve")
+                        d.logger.warning("Got 403 - trying to refresh cookies")
+
+                        # Try to pre-warm new cookies
+                        if d.prewarm_cookies():
+                            d.logger.info("Retrying with fresh cookies...")
+                            # Retry once with fresh cookies
+                            response = d.session.get(mirror_url, timeout=30)
+
+                            if response.status_code == 403:
+                                d.logger.warning("Still got 403 after cookie refresh, using FlareSolverr for full solve")
+                            else:
+                                # Success with fresh cookies, continue to parse
+                                response.raise_for_status()
+
+                                if hasattr(d, 'status_callback'):
+                                    d.status_callback("Extracting download link...")
+
+                                download_link = d.parse_download_link_from_html(response.text, md5, mirror_url)
+                                if not download_link:
+                                    d.logger.warning("Could not find download link")
+                                    return None
+
+                                if hasattr(d, 'status_callback'):
+                                    d.status_callback("Downloading file...")
+
+                                return d.download_direct(download_link, title=title, resume_attempts=resume_attempts, md5=md5)
+
+                        # If cookie refresh failed or still got 403, use FlareSolverr
+                        if hasattr(d, 'status_callback'):
+                            d.status_callback("Solving CAPTCHA with FlareSolverr...")
                         success, cookies, html_content = d.solve_with_flaresolverr(mirror_url)
                         if success:
+                            if hasattr(d, 'status_callback'):
+                                d.status_callback("Extracting download link...")
                             download_link = d.parse_download_link_from_html(html_content, md5, mirror_url)
                             if download_link:
+                                if hasattr(d, 'status_callback'):
+                                    d.status_callback("Downloading file...")
                                 d.logger.info("Found download URL via FlareSolverr, downloading...")
-                                return d.download_direct(download_link, title=title, resume_attempts=resume_attempts)
+                                return d.download_direct(download_link, title=title, resume_attempts=resume_attempts, md5=md5)
                         return None
                     else:
                         d.logger.warning("Got 403 but FlareSolverr not configured")
@@ -133,12 +93,18 @@ def download_from_mirror(d, mirror_url, mirror_type, md5, title=None, resume_att
 
                 response.raise_for_status()
 
+                if hasattr(d, 'status_callback'):
+                    d.status_callback("Extracting download link...")
+
                 download_link = d.parse_download_link_from_html(response.text, md5, mirror_url)
                 if not download_link:
                     d.logger.warning("Could not find download link")
                     return None
-                
-                return d.download_direct(download_link, title=title, resume_attempts=resume_attempts)
+
+                if hasattr(d, 'status_callback'):
+                    d.status_callback("Downloading file...")
+
+                return d.download_direct(download_link, title=title, resume_attempts=resume_attempts, md5=md5)
             
             except Exception as e:
                 d.logger.error(f"Error accessing external mirror: {e}")

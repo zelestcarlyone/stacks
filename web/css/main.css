@@ -482,6 +482,16 @@ header img {
   opacity: 0.8;
   font-size: 0.9em;
 }
+.current-download .status-message {
+  margin-top: 5px;
+  padding: 5px 10px;
+  background: rgba(139, 233, 253, 0.1);
+  border-left: 3px solid #8be9fd;
+  border-radius: 5px;
+  font-size: 0.9em;
+  color: #8be9fd;
+  font-weight: 500;
+}
 .current-download .time {
   margin-top: 10px;
   opacity: 0.9;

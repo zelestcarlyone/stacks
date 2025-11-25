@@ -7,28 +7,30 @@ from stacks.downloader.direct import download_direct
 from stacks.downloader.fast_download import try_fast_download, get_fast_download_info, refresh_fast_download_info
 from stacks.downloader.flaresolver import solve_with_flaresolverr
 from stacks.downloader.html import get_download_links, parse_download_link_from_html
-from stacks.downloader.mirrors import download_from_mirror, get_all_download_urls
+from stacks.downloader.mirrors import download_from_mirror
 from stacks.downloader.orchestrator import orchestrate_download
 from stacks.downloader.utils import get_unique_filename
 
 class AnnaDownloader:
-    def __init__(self, output_dir="./downloads", incomplete_dir=None, progress_callback=None, 
-                 fast_download_config=None, flaresolverr_url=None, flaresolverr_timeout=60000):
+    def __init__(self, output_dir="./downloads", incomplete_dir=None, progress_callback=None,
+                 fast_download_config=None, flaresolverr_url=None, flaresolverr_timeout=60000,
+                 status_callback=None):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         if incomplete_dir:
             self.incomplete_dir = Path(incomplete_dir)
         else:
             self.incomplete_dir = self.output_dir / "incomplete"
         self.incomplete_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
         })
         self.logger = logging.getLogger('stacks_downloader')
         self.progress_callback = progress_callback
+        self.status_callback = status_callback
         
         # Fast download configuration
         self.fast_download_config = fast_download_config or {}
@@ -58,7 +60,7 @@ class AnnaDownloader:
             self.logger.info(f"FlareSolverr enabled: {flaresolverr_url}")
             self.logger.info("Using ALL download sources (Anna's Archive + external mirrors)")
             # Load cached cookies if available
-            # DISABLED FOR TESTING: self.load_cached_cookies()
+            self.load_cached_cookies()
         else:
             self.logger.warning("FlareSolverr not configured - slow_download servers will be SKIPPED")
             self.logger.info("Using external mirrors only (Libgen, library.lol, etc.)")
@@ -75,13 +77,13 @@ class AnnaDownloader:
     
     
     # Direct
-    def download_direct(self, download_url, title=None, total_size=None, supports_resume=True, resume_attempts=3):
-        return download_direct(self, download_url, title, total_size, supports_resume, resume_attempts)
+    def download_direct(self, download_url, title=None, total_size=None, supports_resume=True, resume_attempts=3, md5=None):
+        return download_direct(self, download_url, title, total_size, supports_resume, resume_attempts, md5)
     
     
     # Download orchestrator
-    def download(self, input_string, prefer_mirror=None, resume_attempts=3):
-        return orchestrate_download(self, input_string, prefer_mirror, resume_attempts)
+    def download(self, input_string, prefer_mirror=None, resume_attempts=3, filename=None, links=None):
+        return orchestrate_download(self, input_string, prefer_mirror, resume_attempts, filename, links)
  
  
     # Fast Download
@@ -109,9 +111,6 @@ class AnnaDownloader:
     
     
     # Mirrors
-    def get_all_download_urls(self, md5, solve_ddos=True, max_urls=10):
-        return get_all_download_urls(self, md5, solve_ddos, max_urls)
-    
     def download_from_mirror(self, mirror_url, mirror_type, md5, title=None, resume_attempts=3):
         return download_from_mirror(self, mirror_url, mirror_type, md5, title, resume_attempts)
 

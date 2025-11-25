@@ -99,7 +99,7 @@ def require_auth(f):
     Require EITHER:
     - A logged-in session (web UI), OR
     - A valid X-API-Key / ?api_key=... token (external tools).
-    - The authentification to be disabled in the config
+    - The authentication to be disabled in the config
     """
     @wraps(f)
     def wrapper(*args, **kwargs):

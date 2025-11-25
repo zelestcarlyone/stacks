@@ -77,12 +77,11 @@ class DownloadQueue:
                 return self.queue.pop(0)
             return None
     
-    def mark_complete(self, md5, success, filepath=None, error=None, used_fast_download=False):
+    def mark_complete(self, md5, success, filepath=None, error=None, used_fast_download=False, filename=None):
         """Mark download as complete"""
         with self.lock:
-            # Extract filename from filepath if available
-            filename = None
-            if filepath:
+            # Use provided filename, or extract from filepath if available
+            if not filename and filepath:
                 filename = Path(filepath).name
 
             item = {
@@ -102,7 +101,7 @@ class DownloadQueue:
                 method = "fast download" if used_fast_download else "mirror"
                 self.logger.info(f"Download complete ({method}): {filename or md5}")
             else:
-                self.logger.warning(f"Download failed: {md5} - {error}")
+                self.logger.warning(f"Download failed: {filename or md5} - {error}")
     
     def get_status(self):
         """Get current queue status"""

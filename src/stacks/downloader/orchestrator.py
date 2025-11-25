@@ -1,7 +1,15 @@
 import random
 
-def orchestrate_download(d, input_string, prefer_mirror=None, resume_attempts=3):
+def orchestrate_download(d, input_string, prefer_mirror=None, resume_attempts=3, filename=None, links=None):
     """Download a file from Anna's Archive.
+
+    Args:
+        d: Downloader instance
+        input_string: MD5 hash or URL
+        prefer_mirror: Preferred mirror to try first
+        resume_attempts: Number of resume attempts
+        filename: Pre-fetched filename (optional, will fetch if not provided)
+        links: Pre-fetched download links (optional, will fetch if not provided)
 
     Returns: (success, used_fast_download, filepath)
     """
@@ -12,18 +20,23 @@ def orchestrate_download(d, input_string, prefer_mirror=None, resume_attempts=3)
 
     d.logger.info(f"Downloading: {md5}")
 
-    filename, links = d.get_download_links(md5)
-
-    # Store filename in a place the worker can access it
-    d._current_filename = filename
+    # Fetch download info if not provided
+    if filename is None or links is None:
+        filename, links = d.get_download_links(md5)
 
     # Try fast download first
     if d.fast_download_enabled and d.fast_download_key:
+        if hasattr(d, 'status_callback'):
+            d.status_callback("Trying fast download...")
+
         success, result = d.try_fast_download(md5)
 
         if success:
             d.logger.info("Using fast download")
-            filepath = d.download_direct(result, title=filename, resume_attempts=resume_attempts)
+            if hasattr(d, 'status_callback'):
+                d.status_callback("Downloading via fast download...")
+
+            filepath = d.download_direct(result, title=filename, resume_attempts=resume_attempts, md5=md5)
             if filepath:
                 d.logger.info("Fast download successful")
                 return True, True, filepath
@@ -31,7 +44,7 @@ def orchestrate_download(d, input_string, prefer_mirror=None, resume_attempts=3)
                 d.logger.warning("Fast download failed, falling back to mirrors")
         else:
             d.logger.info(f"Fast download not available: {result}")
-        
+
 
     if not links:
         d.logger.error("No download links found")
@@ -54,6 +67,9 @@ def orchestrate_download(d, input_string, prefer_mirror=None, resume_attempts=3)
         mirror_name = mirror_link.get('text', mirror_link.get('domain', 'Unknown'))
         d.logger.info(f"Trying mirror {i+1}/{len(links)}: {mirror_name}")
 
+        if hasattr(d, 'status_callback'):
+            d.status_callback(f"Accessing mirror {i+1}/{len(links)}: {mirror_name}")
+
         filepath = d.download_from_mirror(
             mirror_link['url'],
             mirror_link['type'],
@@ -64,6 +80,8 @@ def orchestrate_download(d, input_string, prefer_mirror=None, resume_attempts=3)
 
         if filepath:
             d.logger.info("Download successful")
+            if hasattr(d, 'status_callback'):
+                d.status_callback("Verifying download...")
             return True, False, filepath
         else:
             d.logger.warning(f"Mirror {mirror_name} failed")

@@ -151,6 +151,16 @@ function updateStatus() {
         const displayName = data.current.filename || data.current.md5;
         document.getElementById("current-title").textContent = displayName;
         document.getElementById("current-md5").textContent = data.current.md5;
+
+        // Show status message if available
+        const statusEl = document.getElementById("current-status");
+        if (data.current.status_message) {
+          statusEl.textContent = data.current.status_message;
+          statusEl.style.display = "block";
+        } else {
+          statusEl.style.display = "none";
+        }
+
         document.getElementById("current-time").textContent = "Started: " + formatTime(data.current.started_at);
         document.getElementById("current-progress-bar").style.width = percent + "%";
         document.getElementById("current-progress-text").textContent = `${percent.toFixed(1)}% - ${downloaded} / ${total}`;
@@ -359,7 +369,7 @@ function loadSettings() {
     .then((r) => r.json())
     .then((config) => {
       // Login credentials
-      document.getElementById("setting-authentification-enabled").checked = !config.login?.disable;
+      document.getElementById("setting-authentication-enabled").checked = !config.login?.disable;
       document.getElementById("setting-username").value = config.login?.username || "";
       document.getElementById("setting-new-password").value = "";
 
@@ -412,7 +422,7 @@ function saveSettings() {
     },
     login: {
       username: document.getElementById("setting-username").value,
-      disable: !document.getElementById("setting-authentification-enabled").checked,
+      disable: !document.getElementById("setting-authentication-enabled").checked,
     },
   };
 

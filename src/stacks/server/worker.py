@@ -20,9 +20,18 @@ class DownloadWorker:
                     self.queue.current_download.update({
                         'progress': progress
                     })
-        
+
+        # Status callback to update current download status
+        def status_callback(status_message):
+            if self.queue.current_download:
+                with self.queue.lock:
+                    self.queue.current_download.update({
+                        'status_message': status_message
+                    })
+
         # Initialize downloader
         self.progress_callback = progress_callback
+        self.status_callback = status_callback
         self.recreate_downloader()
     
     def recreate_downloader(self):
@@ -49,6 +58,7 @@ class DownloadWorker:
             output_dir=DOWNLOAD_PATH,
             incomplete_dir=INCOMPLETE_PATH,
             progress_callback=self.progress_callback,
+            status_callback=self.status_callback,
             fast_download_config=fast_config,
             flaresolverr_url=flaresolverr_url if flaresolverr_enabled else None,
             flaresolverr_timeout=flaresolverr_timeout_ms
@@ -144,39 +154,47 @@ class DownloadWorker:
                 time.sleep(1)
                 continue
             
-            # Set as current download
+            # Fetch download info FIRST (before setting current_download)
+            self.logger.info(f"Fetching download info: {item['md5']}")
+            try:
+                filename, links = self.downloader.get_download_links(item['md5'])
+            except Exception as e:
+                self.logger.error(f"Failed to fetch download info: {e}")
+                self.queue.mark_complete(item['md5'], False, error=f"Failed to fetch download info: {e}")
+                continue
+
+            # Set as current download with ALL information
             with self.queue.lock:
                 self.queue.current_download = item
                 self.queue.current_download['status'] = 'downloading'
                 self.queue.current_download['started_at'] = datetime.now().isoformat()
+                self.queue.current_download['filename'] = filename
+                self.queue.current_download['status_message'] = f"Found {len(links)} mirror(s)"
                 self.queue.current_download['progress'] = {
                     'total_size': 0,
                     'downloaded': 0,
                     'percent': 0
                 }
-            
-            self.logger.info(f"Starting download: {item['md5']}")
 
-            # Update current download with filename if available
-            if hasattr(self.downloader, '_current_filename'):
-                with self.queue.lock:
-                    if self.queue.current_download:
-                        self.queue.current_download['filename'] = self.downloader._current_filename
+            self.logger.info(f"Starting download: {filename} ({item['md5']})")
 
             try:
+                # Pass pre-fetched filename and links to avoid duplicate API calls
                 success, used_fast_download, filepath = self.downloader.download(
                     item['md5'],
-                    resume_attempts=resume_attempts
+                    resume_attempts=resume_attempts,
+                    filename=filename,
+                    links=links
                 )
 
                 if success:
-                    self.queue.mark_complete(item['md5'], True, filepath=filepath, used_fast_download=used_fast_download)
+                    self.queue.mark_complete(item['md5'], True, filepath=filepath, used_fast_download=used_fast_download, filename=filename)
                 else:
-                    self.queue.mark_complete(item['md5'], False, error="Download failed")
+                    self.queue.mark_complete(item['md5'], False, error="Download failed", filename=filename)
 
             except Exception as e:
                 self.logger.error(f"Download error: {item['md5']} - {e}")
-                self.queue.mark_complete(item['md5'], False, error=str(e))
+                self.queue.mark_complete(item['md5'], False, error=str(e), filename=filename)
             
             # Rate limiting
             if self.queue.queue:

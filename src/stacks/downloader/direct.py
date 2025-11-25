@@ -2,11 +2,30 @@ import re
 import time
 import requests
 import shutil
+import hashlib
 from pathlib import Path
 from urllib.parse import urlparse, unquote
 
-def download_direct(d, download_url, title=None, total_size=None, supports_resume=True, resume_attempts=3):
-    """Download a file directly from a URL with resume support."""
+def calculate_md5(filepath):
+    """Calculate MD5 hash of a file."""
+    hash_md5 = hashlib.md5()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+
+def download_direct(d, download_url, title=None, total_size=None, supports_resume=True, resume_attempts=3, md5=None):
+    """Download a file directly from a URL with resume support.
+
+    Args:
+        d: Downloader instance
+        download_url: URL to download from
+        title: Expected filename
+        total_size: Expected file size (optional)
+        supports_resume: Whether resume is supported
+        resume_attempts: Number of resume attempts
+        md5: Expected MD5 hash for verification (optional)
+    """
     try:
         # Determine filename
         if title:
@@ -57,20 +76,7 @@ def download_direct(d, download_url, title=None, total_size=None, supports_resum
                     downloaded = 0
                     temp_path.unlink(missing_ok=True)
                     response = d.session.get(download_url, stream=True, timeout=30)
-                
-                # Check for HTML content
-                content_type = response.headers.get('Content-Type', '').lower()
-                if 'text/html' in content_type:
-                    first_chunk = next(response.iter_content(chunk_size=1024), None)
-                    if first_chunk and (b'<html' in first_chunk.lower() or b'<!doctype' in first_chunk.lower()):
-                        d.logger.warning("Downloaded content appears to be HTML, aborting")
-                        return None
-                    if first_chunk:
-                        mode = 'ab' if downloaded > 0 else 'wb'
-                        with open(temp_path, mode) as f:
-                            f.write(first_chunk)
-                            downloaded += len(first_chunk)
-                
+
                 # Get total size
                 if total_size is None:
                     content_length = response.headers.get('Content-Length')
@@ -99,17 +105,21 @@ def download_direct(d, download_url, title=None, total_size=None, supports_resum
                 # Verify complete
                 if total_size and downloaded < total_size:
                     raise Exception(f"Incomplete download: {downloaded}/{total_size} bytes")
-                
-                # Check if file is suspiciously small (expired download page)
-                if temp_path.stat().st_size < 1024:
-                    d.logger.warning("Downloaded file < 1KB - likely expired download page")
-                    temp_path.unlink()
-                    return None
-                
+
+                # Verify MD5 hash if provided
+                if md5:
+                    d.logger.info("Verifying MD5 checksum...")
+                    file_md5 = calculate_md5(temp_path)
+                    if file_md5.lower() != md5.lower():
+                        d.logger.error(f"MD5 mismatch: expected {md5}, got {file_md5}")
+                        temp_path.unlink()
+                        return None
+                    d.logger.info("MD5 checksum verified")
+
                 # Move to final location
                 final_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(str(temp_path), str(final_path))
-                
+
                 d.logger.info(f"Downloaded: {final_path.name}")
                 return final_path
                 
