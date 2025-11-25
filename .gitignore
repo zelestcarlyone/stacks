@@ -29,6 +29,13 @@ nosetests.xml
 coverage.xml
 *.cover
 
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
 # Personal scripts
 release.sh
 todo.md
