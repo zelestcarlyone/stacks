@@ -9,7 +9,7 @@ import logging
 PROJECT_ROOT = Path(os.environ.get('STACKS_PROJECT_ROOT', Path(__file__).resolve().parent.parent.parent))
 
 DOWNLOAD_PATH = PROJECT_ROOT / "download"
-INCOMPLETE_PATH = PROJECT_ROOT / "download" / "incomplete"
+INCOMPLETE_PATH = PROJECT_ROOT / "incomplete"
 LOG_PATH = PROJECT_ROOT / "logs"
 CACHE_PATH = PROJECT_ROOT / "cache"
 CONFIG_PATH = PROJECT_ROOT / "config"

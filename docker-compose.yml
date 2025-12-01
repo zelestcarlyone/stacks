@@ -16,6 +16,7 @@ services:
       # REQUIRED: Change these paths to match your system
       - "/path/to/config:/opt/stacks/config"       # Configuration folder
       - "/path/to/download:/opt/stacks/download"   # Downloaded files
+      - "/path/to/incomplete:/opt/stacks/incomplete"   # incomplete path
       - "/path/to/logs:/opt/stacks/logs"           # Log files
     restart: unless-stopped
     environment:
