@@ -38,8 +38,8 @@ Stacks supports three authentication methods with different permission levels:
 | Endpoint                         | Method | Session | Admin Key | DL Key | Description                                           |
 | -------------------------------- | ------ | ------- | --------- | ------ | ----------------------------------------------------- |
 | `/api/key`                       | GET    | ✔️       | ❌         | ❌      | Get API keys (web UI only)                            |
-| `/api/key/downloader/disable`    | POST   | ✔️       | ❌         | ❌      | Disable API key (sets to null)                        |
 | `/api/key/regenerate`            | POST   | ✔️       | ❌         | ❌      | Generate new admin API key (invalidates old one)      |
+| `/api/key/disable`               | POST   | ✔️       | ❌         | ❌      | Disable API key (sets to null)                        |
 | `/api/key/downloader/regenerate` | POST   | ✔️       | ❌         | ❌      | Generate new downloader API key (invalidates old one) |
 | `/api/key/downloader/disable`    | POST   | ✔️       | ❌         | ❌      | Disable downloader API key (sets to null)             |
 | `/api/key/test`                  | POST   | ✔️       | ✔️         | ✔️      | Test if an API key is valid and return its type       |
