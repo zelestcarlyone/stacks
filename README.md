@@ -3,8 +3,13 @@
 ![Stacks Logo](web/images/logo.svg)
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=flat&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/zelest/stacks?style=flat&logo=docker)](https://hub.docker.com/r/zelest/stacks)
+[![Docker Image Size](https://img.shields.io/docker/image-size/zelest/stacks/latest?style=flat&logo=docker)](https://hub.docker.com/r/zelest/stacks)
+[![Python](https://img.shields.io/badge/Python-3.14-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![Alpine](https://img.shields.io/badge/Alpine-3.23-0D597F?style=flat&logo=alpinelinux&logoColor=white)](https://alpinelinux.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.1.2-000000?style=flat&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Gunicorn](https://img.shields.io/badge/Gunicorn-23.0.0-499848?style=flat&logo=gunicorn&logoColor=white)](https://github.com/benoitc/gunicorn)
+[![FlareSolverr](https://img.shields.io/badge/FlareSolverr-Compatible-orange?style=flat&logo=cloudflare&logoColor=white)](https://github.com/FlareSolverr/FlareSolverr)
 [![Tampermonkey](https://img.shields.io/badge/tampermonkey-%2300485B.svg?style=flat&logo=tampermonkey&logoColor=white)](https://www.tampermonkey.net/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
