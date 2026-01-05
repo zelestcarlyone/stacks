@@ -4,6 +4,7 @@ import re
 from urllib.parse import urlparse
 from pathlib import Path
 from stacks.constants import COOKIE_CACHE_DIR
+from stacks.utils.domainutils import get_working_domain, try_domains_until_success
 
 def _get_cookie_filename(domain_or_url):
     """Convert domain/URL to a safe cookie filename.
@@ -27,12 +28,12 @@ def _get_cookie_filename(domain_or_url):
 
     return f"cookie-{safe_name}.json"
 
-def _load_cached_cookies(d, domain='annas-archive.org'):
+def _load_cached_cookies(d, domain=None):
     """Load cookies from domain-specific cache file.
 
     Args:
         d: Downloader instance
-        domain: Domain or URL to load cookies for (default: annas-archive.org)
+        domain: Domain or URL to load cookies for (default: current working domain)
 
     Supports two formats:
     1. JSON format: {"timestamp": 123456, "cookies": {"name": "value", ...}}
@@ -40,6 +41,9 @@ def _load_cached_cookies(d, domain='annas-archive.org'):
 
     If timestamp is present and cookies are >24h old, they're still loaded but marked as potentially stale.
     """
+    if domain is None:
+        domain = get_working_domain()
+
     cookie_filename = _get_cookie_filename(domain)
     cookie_file = COOKIE_CACHE_DIR / cookie_filename
 
@@ -78,14 +82,16 @@ def _load_cached_cookies(d, domain='annas-archive.org'):
             d.logger.debug(f"Failed to load cached cookies for {domain}: {e}")
     return False
 
-def _save_cookies_to_cache(d, cookies_dict, domain='annas-archive.org'):
+def _save_cookies_to_cache(d, cookies_dict, domain=None):
     """Save cookies to domain-specific cache file.
 
     Args:
         d: Downloader instance
         cookies_dict: Dictionary of cookie name-value pairs
-        domain: Domain or URL these cookies are for (default: annas-archive.org)
+        domain: Domain or URL these cookies are for (default: current working domain)
     """
+    if domain is None:
+        domain = get_working_domain()
     try:
         cookie_filename = _get_cookie_filename(domain)
         cookie_file = COOKIE_CACHE_DIR / cookie_filename
@@ -102,8 +108,31 @@ def _save_cookies_to_cache(d, cookies_dict, domain='annas-archive.org'):
     except Exception as e:
         d.logger.debug(f"Failed to cache cookies for {domain}: {e}")
 
+def _prewarm_cookies_single_domain(d, domain):
+    """Pre-warm cookies using FlareSolverr for a specific domain."""
+    if not d.flaresolverr_url:
+        return False
+
+    d.logger.debug(f"Pre-warming cookies for {domain} with FlareSolverr...")
+
+    # Use a slow_download URL to trigger DDG challenge and get all cookies
+    # This ensures we get __ddg* cookies needed for slow_download access
+    from stacks.constants import KNOWN_MD5
+    test_url = f"https://{domain}/slow_download/{KNOWN_MD5}/0/0"
+
+    success, cookies, _ = d.solve_with_flaresolverr(test_url)
+
+    if success and cookies:
+        _save_cookies_to_cache(d, cookies, domain)
+        d.logger.info(f"Cookies pre-warmed and cached for {domain}")
+        return True
+
+    raise Exception(f"Failed to pre-warm cookies for {domain}")
+
+
 def _prewarm_cookies(d):
-    """Pre-warm cookies using FlareSolverr if enabled.
+    """
+    Pre-warm cookies using FlareSolverr with automatic domain rotation.
 
     Uses a slow_download URL to ensure we get all DDG cookies.
     """
@@ -112,17 +141,8 @@ def _prewarm_cookies(d):
 
     d.logger.info("Pre-warming cookies with FlareSolverr...")
 
-    # Use a slow_download URL to trigger DDG challenge and get all cookies
-    # This ensures we get __ddg* cookies needed for slow_download access
-    from stacks.constants import KNOWN_MD5
-    test_url = f"https://annas-archive.org/slow_download/{KNOWN_MD5}/0/0"
-
-    success, cookies, _ = d.solve_with_flaresolverr(test_url)
-
-    if success and cookies:
-        _save_cookies_to_cache(d, cookies)
-        d.logger.info("Cookies pre-warmed and cached")
-        return True
-
-    d.logger.warning("Failed to pre-warm cookies")
-    return False
+    try:
+        return try_domains_until_success(_prewarm_cookies_single_domain, d)
+    except Exception as e:
+        d.logger.warning(f"Failed to pre-warm cookies on all domains: {e}")
+        return False

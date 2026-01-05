@@ -13,8 +13,8 @@ def download_from_mirror(d, mirror_url, mirror_type, md5, title=None, resume_att
         if mirror_type == 'slow_download':
             d.logger.debug("Accessing slow download (via cookies)")
 
-            # Try to load cached cookies for this domain
-            d.load_cached_cookies(domain='annas-archive.org')
+            # Try to load cached cookies for this domain (uses current working domain)
+            d.load_cached_cookies()
 
             if hasattr(d, 'status_callback'):
                 d.status_callback("Accessing slow download page...")

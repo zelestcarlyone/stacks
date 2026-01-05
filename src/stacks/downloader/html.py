@@ -3,6 +3,7 @@ from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 from stacks.downloader.sites.zlib import parse_zlib_download_link, is_zlib_domain
 from stacks.constants import LEGAL_FILES
+from stacks.utils.domainutils import get_working_domain, try_domains_until_success
 
 def parse_download_link_from_html(d, html_content, md5, mirror_url=None):
         """
@@ -115,9 +116,11 @@ def parse_download_link_from_html(d, html_content, md5, mirror_url=None):
 
         return None
     
-def get_download_links(d, md5):
-    """Get download links from Anna's Archive."""
-    url = f"https://annas-archive.org/md5/{md5}"
+def _get_download_links_single_domain(d, md5, domain):
+    """Get download links from Anna's Archive using a specific domain."""
+    url = f"https://{domain}/md5/{md5}"
+
+    d.logger.debug(f"Fetching download links from {domain}")
 
     try:
         response = d.session.get(url, timeout=30)
@@ -267,7 +270,7 @@ def get_download_links(d, md5):
                     
                     links.append({
                         'url': full_url,
-                        'domain': 'annas-archive.org',
+                        'domain': domain,
                         'text': server_name,
                         'type': 'slow_download'
                     })
@@ -306,5 +309,19 @@ def get_download_links(d, md5):
         return filename, links
 
     except Exception as e:
-        d.logger.error(f"Error fetching download links: {e}")
+        d.logger.error(f"Error fetching download links from {domain}: {e}")
+        raise  # Re-raise to allow domain rotation
+
+
+def get_download_links(d, md5):
+    """
+    Get download links from Anna's Archive with automatic domain rotation.
+
+    This function will try different Anna's Archive domains until one succeeds.
+    When a domain works, it's saved for future use.
+    """
+    try:
+        return try_domains_until_success(_get_download_links_single_domain, d, md5)
+    except Exception as e:
+        d.logger.error(f"Failed to fetch download links from all domains: {e}")
         return "Unknown", []

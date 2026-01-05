@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0]
+
+### Features
+- Added robust domain fallback system for Anna's Archive with automatic rotation across multiple domains:
+  - Supports 5 fallback domains: *annas-archive.org*, *annas-archive.li*, *annas-archive.se*, *annas-archive.pm*, and *annas-archive.in*
+  - Remembers which domain worked last and uses it by default
+  - Automatically rotates to next domain when current one is down
+  - Tampermonkey script now works on all fallback domains
+
+### Bugfixes
+- Fixed bug in how cached Cookies were cashed without proper domain, making them not reused properly.
+- Fixed bug for FireFox where re-adding a download doesn't work. (Fix provided by @cclambie)
+
 ## [1.1.2]
 
 ### Features

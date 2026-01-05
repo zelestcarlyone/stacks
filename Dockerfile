@@ -1,7 +1,7 @@
 # ========================================
 # Stage 1: Builder
 # ========================================
-FROM python:3.11-alpine AS builder
+FROM python:3.14.2-alpine3.23 AS builder
 
 WORKDIR /opt/stacks
 

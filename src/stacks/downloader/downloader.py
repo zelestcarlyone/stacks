@@ -2,6 +2,7 @@ import logging
 import requests
 from pathlib import Path
 from stacks.utils.md5utils import extract_md5
+from stacks.utils.domainutils import get_working_domain
 from stacks.downloader.cookies import _load_cached_cookies, _save_cookies_to_cache, _prewarm_cookies
 from stacks.downloader.direct import download_direct
 from stacks.downloader.fast_download import try_fast_download, get_fast_download_info, refresh_fast_download_info
@@ -36,10 +37,9 @@ class AnnaDownloader:
         self.fast_download_config = fast_download_config or {}
         self.fast_download_enabled = self.fast_download_config.get('enabled', False)
         self.fast_download_key = self.fast_download_config.get('key')
-        self.fast_download_api_url = self.fast_download_config.get(
-            'api_url', 
-            'https://annas-archive.org/dyn/api/fast_download.json'
-        )
+        # Use dynamic domain for API URL (with fallback support)
+        default_api_url = f'https://{get_working_domain()}/dyn/api/fast_download.json'
+        self.fast_download_api_url = self.fast_download_config.get('api_url', default_api_url)
         
         # Fast download state
         self.fast_download_info = {
@@ -73,10 +73,10 @@ class AnnaDownloader:
         self.load_cached_cookies()
     
     # Cookies
-    def load_cached_cookies(self, domain='annas-archive.org'):
+    def load_cached_cookies(self, domain=None):
         return _load_cached_cookies(self, domain)
 
-    def save_cookies_to_cache(self, cookies_dict, domain='annas-archive.org'):
+    def save_cookies_to_cache(self, cookies_dict, domain=None):
         return _save_cookies_to_cache(self, cookies_dict, domain)
 
     def prewarm_cookies(self):

@@ -882,6 +882,22 @@ function updateHistoryList(history) {
 // EVENT HANDLERS & INITIALIZATION
 // ============================================================================
 
+// Global click handler for retry buttons (event delegation for firefox)
+document.addEventListener('click', (event) => {
+  const retryBtn = event.target.closest('.retry-btn');
+  if (!retryBtn) return;
+
+  const listItem = retryBtn.closest('.list-item');
+  const md5El = listItem?.querySelector('.item-md5');
+  const md5 = md5El?.textContent?.trim();
+
+  if (md5) {
+    retryFailed(md5);
+  } else {
+    console.error('Retry button clicked but MD5 could not be found');
+  }
+});
+
 // Tab switching
 document.querySelectorAll(".tab-button").forEach((button) => {
   button.addEventListener("click", () => {

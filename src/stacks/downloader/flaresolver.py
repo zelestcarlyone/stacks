@@ -1,4 +1,5 @@
 import requests
+from urllib.parse import urlparse
 
 def solve_with_flaresolverr(d, url):
     """Use FlareSolverr to bypass DDoS-Guard/Cloudflare protection."""
@@ -30,10 +31,13 @@ def solve_with_flaresolverr(d, url):
             html_content = solution.get('response')
             
             d.logger.info(f"FlareSolverr: Success - got {len(cookies_dict)} cookies")
-            
-            # Apply cookies to session
+
+            # Extract domain from URL
+            actual_domain = urlparse(url).netloc.split(':')[0]
+
+            # Apply cookies to session with proper domain
             for name, value in cookies_dict.items():
-                d.session.cookies.set(name, value)
+                d.session.cookies.set(name, value, domain=actual_domain)
 
             # Cache cookies for this domain (for reuse on retry/future downloads)
             d.save_cookies_to_cache(cookies_dict, domain=url)

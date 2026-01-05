@@ -19,7 +19,7 @@
 
 Stacks is a containerized download queue manager designed specifically for Anna's Archive. It provides a clean web interface to queue, manage, and download books automatically. With support for Anna's Archive's fast download API and automatic fallback to mirrors, Stacks ensures reliable downloads with minimal manual intervention.
 
-### Key Features
+### Key Featurespip 
 
 - **Secure Web Interface** - Password-protected dashboard with session management
 - **Queue Management** - Add books to a download queue from your browser with one click
