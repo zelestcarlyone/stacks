@@ -831,7 +831,7 @@ function updateHistoryList(history) {
       statusIcon.setAttribute("data-icon", "close");
       statusIcon.className = "item-status-icon error-icon";
     }
-    clone.querySelector(".item-link").href = "https://annas-archive.org/md5/" + item.md5;
+    clone.querySelector(".item-link").href = "https://annas-archive.li/md5/" + item.md5;
     // Title - filename or MD5
     const displayName = item.filename || item.md5;
     clone.querySelector(".item-title-text").textContent = displayName;
