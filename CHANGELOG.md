@@ -4,7 +4,7 @@
 
 ### Features
 - Added robust domain fallback system for Anna's Archive with automatic rotation across multiple domains:
-  - Supports 5 fallback domains: *annas-archive.org*, *annas-archive.li*, *annas-archive.se*, *annas-archive.pm*, and *annas-archive.in*
+  - Supports fallback domains: *annas-archive.li*, and *annas-archive.pm*.
   - Remembers which domain worked last and uses it by default
   - Automatically rotates to next domain when current one is down
   - Tampermonkey script now works on all fallback domains

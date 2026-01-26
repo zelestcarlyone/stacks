@@ -40,8 +40,8 @@ def parse_download_link_from_html(d, html_content, md5, mirror_url=None):
             'jdownloader.org', 'telegram.org', 't.me', 'discord.gg',
             'reddit.com', 'twitter.com', 'facebook.com', 'instagram.com',
             'patreon.com', 'ko-fi.com', 'buymeacoffee.com',
-            'annas-archive.org/account', 'annas-archive.org/search',
-            'annas-archive.org/md5', 'annas-archive.org/donate',
+            'annas-archive.li/account', 'annas-archive.li/search',
+            'annas-archive.li/md5', 'annas-archive.li/donate',
             '.onion'
         ]
 
