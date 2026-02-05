@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 from stacks.downloader.downloader import AnnaDownloader
-from stacks.constants import FAST_DOWNLOAD_API_URL, DOWNLOAD_PATH, PROJECT_ROOT
+from stacks.constants import DOWNLOAD_PATH, PROJECT_ROOT
 
 class DownloadWorker:
     def __init__(self, queue, config):
@@ -56,7 +56,6 @@ class DownloadWorker:
         fast_config = {
             'enabled': self.config.get('fast_download', 'enabled', default=False),
             'key': self.config.get('fast_download', 'key'),
-            'api_url': FAST_DOWNLOAD_API_URL,
             'path_index': 0,
             'domain_index': 0
         }

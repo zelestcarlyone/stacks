@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.1]
+
+### Bugfixes
+- Fixed a bug where Fast Download API keys always tested against annasarchive.org, making it fail
+- Fixed bug where only .org addresses were filtered for downloads, rather than all the mirror domains
+- Fixed bug where the UI pointed to the old .org domain, hard-set it to .li
+
+### Architecture
+- Cleaned out old remnants of constants past
+- Upgraded from python:3.14.2 to python:3.14.3
+- Added linux/arm64 as a build target to allow the image to work on ARM devices (Raspberry Pi, etc)
+
 ## [1.2.0]
 
 ### Features
@@ -10,7 +22,7 @@
   - Tampermonkey script now works on all fallback domains
 
 ### Bugfixes
-- Fixed bug in how cached Cookies were cashed without proper domain, making them not reused properly.
+- Fixed bug in how cached Cookies were cashed without proper domain, making them not reused properly
 - Fixed bug for FireFox where re-adding a download doesn't work. (Fix provided by @cclambie)
 
 ## [1.1.2]

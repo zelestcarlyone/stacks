@@ -37,9 +37,6 @@ class AnnaDownloader:
         self.fast_download_config = fast_download_config or {}
         self.fast_download_enabled = self.fast_download_config.get('enabled', False)
         self.fast_download_key = self.fast_download_config.get('key')
-        # Use dynamic domain for API URL (with fallback support)
-        default_api_url = f'https://{get_working_domain()}/dyn/api/fast_download.json'
-        self.fast_download_api_url = self.fast_download_config.get('api_url', default_api_url)
         
         # Fast download state
         self.fast_download_info = {

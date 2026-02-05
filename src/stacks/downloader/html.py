@@ -2,7 +2,7 @@ import re
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 from stacks.downloader.sites.zlib import parse_zlib_download_link, is_zlib_domain
-from stacks.constants import LEGAL_FILES
+from stacks.constants import LEGAL_FILES, ANNAS_ARCHIVE_DOMAINS
 from stacks.utils.domainutils import get_working_domain, try_domains_until_success
 
 def parse_download_link_from_html(d, html_content, md5, mirror_url=None):
@@ -40,10 +40,14 @@ def parse_download_link_from_html(d, html_content, md5, mirror_url=None):
             'jdownloader.org', 'telegram.org', 't.me', 'discord.gg',
             'reddit.com', 'twitter.com', 'facebook.com', 'instagram.com',
             'patreon.com', 'ko-fi.com', 'buymeacoffee.com',
-            'annas-archive.org/account', 'annas-archive.org/search',
-            'annas-archive.org/md5', 'annas-archive.org/donate',
             '.onion'
         ]
+
+        # Add Anna's Archive navigation paths for all alternative domains
+        annas_skip_paths = ['/account', '/search', '/md5', '/donate']
+        for domain in ANNAS_ARCHIVE_DOMAINS:
+            for path in annas_skip_paths:
+                skip_domains.append(f'{domain}{path}')
 
         # Method 1: Look for links containing MD5 prefix (primary method for slow_download)
         for link in soup.find_all('a', href=True):

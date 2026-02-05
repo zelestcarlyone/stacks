@@ -28,18 +28,13 @@ RESERVED_PATHS = ['/logs', '/config', '/files', '/cache', '/web']
 
 # Anna's Archive Domains (rotating fallbacks)
 ANNAS_ARCHIVE_DOMAINS = [
-    "annas-archive.org",
     "annas-archive.li",
-    "annas-archive.se",
     "annas-archive.pm",
     "annas-archive.in"
 ]
 
 # Domain state file (tracks which domain worked last)
 DOMAIN_STATE_FILE = CONFIG_PATH / "annas_domain_state.json"
-
-# URLs (domain will be resolved at runtime)
-FAST_DOWNLOAD_API_URL = "https://annas-archive.org/dyn/api/fast_download.json"
 
 # Logging
 LOG_FORMAT = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"

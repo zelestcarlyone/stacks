@@ -1,7 +1,7 @@
 # ========================================
 # Stage 1: Builder
 # ========================================
-FROM python:3.14.2-alpine3.23 AS builder
+FROM python:3.14.3-alpine3.23 AS builder
 
 WORKDIR /opt/stacks
 
@@ -35,7 +35,7 @@ RUN rm -rf deps src web/scss requirements.txt
 # ========================================
 # Stage 2: Runtime
 # ========================================
-FROM python:3.14.2-alpine3.23
+FROM python:3.14.3-alpine3.23
 
 ARG VERSION=unknown
 ARG FINGERPRINT=unknown

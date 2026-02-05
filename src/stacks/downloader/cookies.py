@@ -10,7 +10,7 @@ def _get_cookie_filename(domain_or_url):
     """Convert domain/URL to a safe cookie filename.
 
     Examples:
-        annas-archive.org -> cookie-annas-archive-org.json
+        annas-archive.li -> cookie-annas-archive-li.json
         https://libgen.li/some/path -> cookie-libgen-li.json
         library.lol -> cookie-library-lol.json
     """

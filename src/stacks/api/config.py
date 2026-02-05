@@ -6,12 +6,12 @@ from flask import (
     request,
     current_app,
 )
-from stacks.constants import FAST_DOWNLOAD_API_URL, KNOWN_MD5, PROJECT_ROOT
+from stacks.constants import KNOWN_MD5, PROJECT_ROOT
 from . import api_bp
 from stacks.utils.logutils import setup_logging
 from stacks.utils.migrationutils import migrate_incomplete_folder
+from stacks.utils.domainutils import try_domains_until_success
 from stacks.security.auth import (
-    require_auth,
     require_auth_with_permissions,
     hash_password,
 )
@@ -70,80 +70,95 @@ def api_config_test_flaresolverr():
             'error': f'Connection failed: {str(e)}'
         }), 500
     
+def _test_key_single_domain(test_key, domain):
+    """Test fast download key with a specific domain."""
+    import requests
+
+    api_url = f'https://{domain}/dyn/api/fast_download.json'
+
+    response = requests.get(
+        api_url,
+        params={
+            'md5': KNOWN_MD5,
+            'key': test_key
+        },
+        timeout=10
+    )
+
+    if response.status_code == 200:
+        data = response.json()
+        if data.get('download_url'):
+            info = data.get('account_fast_download_info', {})
+            return {
+                'success': True,
+                'message': 'Key is valid',
+                'downloads_left': info.get('downloads_left'),
+                'downloads_per_day': info.get('downloads_per_day'),
+                'account_info': info
+            }
+        else:
+            raise Exception('No download URL in response')
+    elif response.status_code == 401:
+        raise Exception('Invalid secret key')
+    elif response.status_code == 403:
+        raise Exception('Not a member')
+    else:
+        raise Exception(f'API returned status {response.status_code}')
+
+
 @api_bp.route('/api/config/test_key', methods=['POST'])
 @require_auth_with_permissions(allow_downloader=False)
 def api_config_test_key():
     """Test fast download key and update cached info"""
     data = request.json
     test_key = data.get('key')
-    
+
     if not test_key:
         return jsonify({
             'success': False,
             'error': 'No key provided'
         }), 400
-    
+
     try:
-        import requests
-        
-        # Use a known valid MD5 for testing
-                
-        response = requests.get(
-            FAST_DOWNLOAD_API_URL,
-            params={
-                'md5': KNOWN_MD5,
-                'key': test_key
-            },
-            timeout=10
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('download_url'):
-                info = data.get('account_fast_download_info', {})
-                
-                # Update the worker's cached info with timestamp
-                worker = current_app.stacks_worker
-                if worker.downloader.fast_download_key == test_key:
-                    worker.downloader.fast_download_info.update({
-                        'available': True,
-                        'downloads_left': info.get('downloads_left'),
-                        'downloads_per_day': info.get('downloads_per_day'),
-                        'last_refresh': time.time()
-                    })
-                
-                return jsonify({
-                    'success': True,
-                    'message': 'Key is valid',
-                    'downloads_left': info.get('downloads_left'),
-                    'downloads_per_day': info.get('downloads_per_day')
-                })
-            else:
-                return jsonify({
-                    'success': False,
-                    'error': 'No download URL in response'
-                }), 400
-        elif response.status_code == 401:
+        # Use domain rotation to test the key
+        result = try_domains_until_success(_test_key_single_domain, test_key)
+
+        # Update the worker's cached info with timestamp
+        worker = current_app.stacks_worker
+        if worker.downloader.fast_download_key == test_key:
+            worker.downloader.fast_download_info.update({
+                'available': True,
+                'downloads_left': result['downloads_left'],
+                'downloads_per_day': result['downloads_per_day'],
+                'last_refresh': time.time()
+            })
+
+        return jsonify({
+            'success': True,
+            'message': result['message'],
+            'downloads_left': result['downloads_left'],
+            'downloads_per_day': result['downloads_per_day']
+        })
+
+    except Exception as e:
+        error_msg = str(e)
+
+        # Return appropriate status codes
+        if 'Invalid secret key' in error_msg:
             return jsonify({
                 'success': False,
-                'error': 'Invalid secret key'
+                'error': error_msg
             }), 401
-        elif response.status_code == 403:
+        elif 'Not a member' in error_msg:
             return jsonify({
                 'success': False,
-                'error': 'Not a member'
+                'error': error_msg
             }), 403
         else:
             return jsonify({
                 'success': False,
-                'error': f'API returned status {response.status_code}'
-            }), 400
-            
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': f'Connection failed: {str(e)}'
-        }), 500
+                'error': f'Connection failed: {error_msg}'
+            }), 500
     
 @api_bp.route('/api/config', methods=['POST'])
 @require_auth_with_permissions(allow_downloader=False)
