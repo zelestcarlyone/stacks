@@ -39,15 +39,30 @@ def download_direct(d, download_url, title=None, total_size=None, supports_resum
             # Clean filename (remove invalid characters)
             filename = re.sub(r'[<>:"/\\|?*]', '_', title)
 
-        # Validate extension - warn if suspicious but don't modify
+        # Validate and fix extension
         from stacks.constants import LEGAL_FILES
         file_ext = Path(filename).suffix.lower()
 
-        if not file_ext:
-            d.logger.warning(f"Filename has no extension: {filename}, adding .epub")
-            filename = filename + '.epub'
-        elif file_ext not in LEGAL_FILES:
-            d.logger.warning(f"Unusual file extension: {file_ext} (not in known legal files list)")
+        if not file_ext or file_ext not in LEGAL_FILES:
+            # Extension is missing or unrecognized (e.g. Path sees ".0) (mobi)" as suffix)
+            # Scan filename for a known format string like "(mobi)", "(epub)", ".mobi", etc.
+            fixed = False
+            filename_lower = filename.lower()
+            for ext in LEGAL_FILES:
+                bare = ext.lstrip('.')  # e.g. "mobi", "epub"
+                # Check for format in parentheses like "(mobi)" or "(epub)"
+                if f'({bare})' in filename_lower:
+                    # Strip the parenthesized format from the end and add proper extension
+                    filename = re.sub(rf'\s*\({re.escape(bare)}\)\s*$', '', filename, flags=re.IGNORECASE) + ext
+                    d.logger.info(f"Fixed filename extension: ({bare}) -> {ext}")
+                    fixed = True
+                    break
+            if not fixed:
+                if not file_ext:
+                    d.logger.warning(f"Filename has no extension: {filename}, adding .epub")
+                    filename = filename + '.epub'
+                else:
+                    d.logger.warning(f"Unusual file extension: {file_ext} (not in known legal files list)")
         
         # Get unique path (with subfolder if specified)
         if subfolder:
