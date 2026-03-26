@@ -555,39 +555,72 @@
     function apiRequest({ method = 'GET', path = '/', body = null, baseUrl, apiKey, timeout = 15000 }) {
         const urlBase = baseUrl || CONFIG.serverUrl;
         const key = apiKey || CONFIG.apiKey;
+        const url = urlBase.replace(/\/+$/, '') + path;
+        const headers = {
+            'X-API-Key': key,
+            'Content-Type': 'application/json',
+        };
 
-        return new Promise((resolve, reject) => {
-            GM_xmlhttpRequest({
-                method,
-                url: urlBase.replace(/\/+$/, '') + path,
-                headers: {
-                    'X-API-Key': key,
-                    'Content-Type': 'application/json',
-                },
-                data: body ? JSON.stringify(body) : undefined,
-                timeout,
-                onload: (response) => {
-                    let data = null;
-                    try {
-                        if (response.responseText) {
-                            data = JSON.parse(response.responseText);
-                        }
-                    } catch (e) {
-                        // ignore
-                    }
-                    resolve({
-                        status: response.status,
-                        statusText: response.statusText,
-                        data,
-                        raw: response,
+        // Try fetch first (works on all browsers when server has CORS enabled).
+        // Fall back to GM_xmlhttpRequest for cross-origin requests without CORS.
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeout);
+
+        return fetch(url, {
+            method,
+            headers,
+            body: body ? JSON.stringify(body) : undefined,
+            signal: controller.signal,
+        }).then(async (response) => {
+            clearTimeout(timer);
+            let data = null;
+            try {
+                data = await response.json();
+            } catch (e) {
+                // ignore
+            }
+            return {
+                status: response.status,
+                statusText: response.statusText,
+                data,
+                raw: response,
+            };
+        }).catch((fetchErr) => {
+            clearTimeout(timer);
+            if (fetchErr.name === 'AbortError') {
+                throw new Error('Request timed out');
+            }
+            // fetch failed (likely CORS) — try GM_xmlhttpRequest
+            return new Promise((resolve, reject) => {
+                try {
+                    GM_xmlhttpRequest({
+                        method,
+                        url,
+                        headers,
+                        data: body ? JSON.stringify(body) : undefined,
+                        timeout,
+                        onload: (response) => {
+                            let data = null;
+                            try {
+                                if (response.responseText) {
+                                    data = JSON.parse(response.responseText);
+                                }
+                            } catch (e) {
+                                // ignore
+                            }
+                            resolve({
+                                status: response.status,
+                                statusText: response.statusText,
+                                data,
+                                raw: response,
+                            });
+                        },
+                        onerror: () => reject(new Error('Failed to connect to Stacks server')),
+                        ontimeout: () => reject(new Error('Request timed out')),
                     });
-                },
-                onerror: () => {
+                } catch (e) {
                     reject(new Error('Failed to connect to Stacks server'));
-                },
-                ontimeout: () => {
-                    reject(new Error('Request timed out'));
-                },
+                }
             });
         });
     }

@@ -203,9 +203,9 @@ def api_config_test_key():
         # Use domain rotation to test the key
         result = try_domains_until_success(_test_key_single_domain, test_key)
 
-        # Update the worker's cached info with timestamp
+        # Update the worker's cached info with timestamp (debug/single-process mode only)
         worker = current_app.stacks_worker
-        if worker.downloader.fast_download_key == test_key:
+        if worker and worker.downloader.fast_download_key == test_key:
             worker.downloader.fast_download_info.update({
                 'available': True,
                 'downloads_left': result['downloads_left'],
