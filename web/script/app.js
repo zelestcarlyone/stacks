@@ -9,6 +9,7 @@ let lastLog = "{}";
 let consoleInterval = null;
 const md5Regex = /[a-fA-F0-9]{32}/;
 let subdirectoriesTagInput = null;
+let activeSearchRequest = null;
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -86,6 +87,22 @@ function apiFetch(url, options = {}) {
       ...(options.headers || {}),
     },
   });
+}
+
+function buildEmptyState(icon, message) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "empty-state compact";
+
+  const iconDiv = document.createElement("div");
+  iconDiv.className = "empty-state-icon";
+  iconDiv.setAttribute("data-icon", icon);
+
+  const textDiv = document.createElement("div");
+  textDiv.textContent = message;
+
+  wrapper.appendChild(iconDiv);
+  wrapper.appendChild(textDiv);
+  return wrapper;
 }
 
 // ============================================================================
@@ -371,11 +388,21 @@ function addDownload() {
     });
     return;
   }
-  apiFetch("/api/queue/add", {
+
+  queueMd5(md5, "manual")
+    .then((success) => {
+      if (success) {
+        input.value = "";
+      }
+    });
+}
+
+function queueMd5(md5, source = "manual") {
+  return apiFetch("/api/queue/add", {
     method: "POST",
     body: JSON.stringify({
       md5: md5,
-      source: "manual",
+      source: source,
     }),
   })
     .then((r) => {
@@ -394,14 +421,15 @@ function addDownload() {
           message: `Successfully added ${md5} to queue`,
           type: "success",
         });
-        input.value = "";
         updateStatus();
+        return true;
       } else {
         toasts.show({
           title: "Add Download",
           message: data.message || "Failed to add to queue",
           type: "error",
         });
+        return false;
       }
     })
     .catch((err) => {
@@ -411,6 +439,155 @@ function addDownload() {
         message: "Error: " + err.message,
         type: "error",
       });
+      return false;
+    });
+}
+
+function renderSearchResults(results, query) {
+  const container = document.getElementById("search-results");
+  container.innerHTML = "";
+
+  if (!results.length) {
+    container.appendChild(buildEmptyState("search-line", `No results found for "${query}"`));
+    return;
+  }
+
+  results.forEach((result) => {
+    const item = document.createElement("div");
+    item.className = "search-result";
+
+    const header = document.createElement("div");
+    header.className = "search-result__header";
+
+    const titleWrap = document.createElement("div");
+    titleWrap.className = "search-result__titlewrap";
+
+    const titleLink = document.createElement("a");
+    titleLink.className = "search-result__title";
+    titleLink.href = result.url;
+    titleLink.target = "_blank";
+    titleLink.rel = "noreferrer";
+    titleLink.textContent = result.title || result.md5;
+
+    titleWrap.appendChild(titleLink);
+
+    if (result.author) {
+      const author = document.createElement("div");
+      author.className = "search-result__author";
+      author.textContent = result.author;
+      titleWrap.appendChild(author);
+    }
+
+    if (result.publisher) {
+      const publisher = document.createElement("div");
+      publisher.className = "search-result__publisher";
+      publisher.textContent = result.publisher;
+      titleWrap.appendChild(publisher);
+    }
+
+    const addBtn = document.createElement("button");
+    addBtn.className = "btn btn-success search-result__add";
+    addBtn.textContent = "Add";
+    addBtn.addEventListener("click", () => {
+      addBtn.disabled = true;
+      queueMd5(result.md5, "search")
+        .finally(() => {
+          addBtn.disabled = false;
+        });
+    });
+
+    header.appendChild(titleWrap);
+    header.appendChild(addBtn);
+    item.appendChild(header);
+
+    const meta = document.createElement("div");
+    meta.className = "search-result__meta";
+    meta.textContent = result.metadata || [result.language, result.file_type, result.size_human, result.year].filter(Boolean).join(" · ");
+    item.appendChild(meta);
+
+    if (result.description) {
+      const description = document.createElement("div");
+      description.className = "search-result__description";
+      description.textContent = result.description;
+      item.appendChild(description);
+    }
+
+    const footer = document.createElement("div");
+    footer.className = "search-result__footer";
+
+    const md5 = document.createElement("code");
+    md5.className = "search-result__md5";
+    md5.textContent = result.md5;
+    footer.appendChild(md5);
+
+    item.appendChild(footer);
+    container.appendChild(item);
+  });
+}
+
+function searchLibrary() {
+  const input = document.getElementById("title-search");
+  const button = document.getElementById("title-search-btn");
+  const container = document.getElementById("search-results");
+  const query = input.value.trim();
+
+  if (query.length < 2) {
+    toasts.show({
+      title: "Search",
+      message: "Please enter at least 2 characters",
+      type: "error",
+    });
+    return;
+  }
+
+  if (activeSearchRequest) {
+    activeSearchRequest.abort();
+  }
+
+  const controller = new AbortController();
+  activeSearchRequest = controller;
+  button.disabled = true;
+  button.textContent = "Searching...";
+  container.innerHTML = "";
+  container.appendChild(buildEmptyState("loader-4-line", `Searching for "${query}"...`));
+
+  apiFetch("/api/search", {
+    method: "POST",
+    body: JSON.stringify({ query }),
+    signal: controller.signal,
+  })
+    .then((r) => {
+      if (!r.ok) {
+        throw new Error(`HTTP ${r.status}`);
+      }
+      return r.json();
+    })
+    .then((data) => {
+      if (!data.success) {
+        throw new Error(data.error || "Search failed");
+      }
+      renderSearchResults(data.results || [], query);
+    })
+    .catch((err) => {
+      if (err.name === "AbortError") {
+        return;
+      }
+      console.error("Search failed:", err);
+      container.innerHTML = "";
+      container.appendChild(buildEmptyState("close-circle-line", err.message || "Search failed"));
+      toasts.show({
+        title: "Search",
+        message: err.message || "Search failed",
+        type: "error",
+      });
+    })
+    .finally(() => {
+      if (activeSearchRequest !== controller) {
+        return;
+      }
+      activeSearchRequest = null;
+      button.disabled = false;
+      button.textContent = "Search";
     });
 }
 
@@ -1020,12 +1197,19 @@ document.querySelectorAll(".settings-nav li").forEach((item, index) => {
 });
 
 // Add download button handler
-document.querySelector(".add-item .btn-success").addEventListener("click", addDownload);
+document.getElementById("manual-add-btn").addEventListener("click", addDownload);
+document.getElementById("title-search-btn").addEventListener("click", searchLibrary);
 
 // Add download on Enter key
 document.getElementById("manual-add").addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
     addDownload();
+  }
+});
+
+document.getElementById("title-search").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    searchLibrary();
   }
 });
 
