@@ -50,7 +50,20 @@
         <div class="add-item">
           <div class="card input-row">
             <input type="text" id="manual-add" placeholder="Enter an Anna's Archive MD5 or URL..." maxlength="256" />
-            <button data-icon="file-add-line" class="btn btn-success"></button>
+            <button id="manual-add-btn" data-icon="file-add-line" class="btn btn-success" title="Add to queue"></button>
+          </div>
+          <div class="card search-panel">
+            <div class="search-row">
+              <input type="text" id="title-search" placeholder="Search Anna's Archive by title or author..." maxlength="256" />
+              <button id="title-search-btn" class="btn btn-primary">Search</button>
+            </div>
+            <div class="search-help">Search by title, author, or keyword, then add the right result to your queue.</div>
+            <div id="search-results" class="search-results">
+              <div class="empty-state compact">
+                <div class="empty-state-icon" data-icon="search-line"></div>
+                <div>Search results will appear here</div>
+              </div>
+            </div>
           </div>
         </div>
 
