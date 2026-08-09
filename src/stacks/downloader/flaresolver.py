@@ -15,10 +15,29 @@ def solve_with_flaresolverr(d, url):
             "maxTimeout": d.flaresolverr_timeout
         }
 
+        # Bypass the outbound proxy for this internal FlareSolverr call.
+        #
+        # Fixes the download-path half of #44: when a user has BOTH an outbound
+        # proxy and FlareSolverr enabled, the proxy is applied to the shared
+        # requests.Session (see AnnaDownloader.__init__, self.session.proxies).
+        # FlareSolverr, however, is an internal service on the local/docker
+        # network (e.g. http://flaresolverr:8191 or http://172.17.0.1:8191).
+        # Routing that internal request through the *external* proxy creates a
+        # proxy loop / unreachable-host failure, so the challenge is never
+        # solved and every protected mirror fails.
+        #
+        # We override proxies per-request rather than mutating d.session.proxies
+        # (as suggested in the issue), because the proxy is still wanted for the
+        # actual outbound mirror/Anna's Archive downloads on the same session --
+        # only this one hop to the local solver must skip it. A request-level
+        # `proxies` dict takes precedence over the session's for this call only.
+        no_proxy = {"http": None, "https": None}
+
         response = d.session.post(
             f"{d.flaresolverr_url}/v1",
             json=payload,
-            timeout=d.flaresolverr_timeout / 1000 + 10
+            timeout=d.flaresolverr_timeout / 1000 + 10,
+            proxies=no_proxy
         )
         response.raise_for_status()
         
