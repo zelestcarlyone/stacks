@@ -203,9 +203,33 @@ def api_config_test_key():
         # Use domain rotation to test the key
         result = try_domains_until_success(_test_key_single_domain, test_key)
 
-        # Update the worker's cached info with timestamp
+        # Best-effort refresh of the worker's cached fast-download info.
+        #
+        # Fixes: #34, #36, #44 (all reported as
+        #   "Connection failed: 'NoneType' object has no attribute 'downloader'"
+        #   when testing a valid Anna's Archive secret key).
+        #
+        # Root cause: the key validation above (try_domains_until_success) has
+        # already succeeded at this point. The crash came from the line below
+        # unconditionally dereferencing current_app.stacks_worker.downloader.
+        # In production (multi-process) mode the Flask/gunicorn web process does
+        # NOT own the worker or downloader -- those live in the separate worker
+        # processes -- so create_app sets `app.stacks_worker = None`
+        # (see server/webserver.py, the non-debug branch). Calling
+        # `worker.downloader` when `worker is None` raises AttributeError, which
+        # the except-block re-labels as "Connection failed: ...", masking an
+        # otherwise-valid key and quota.
+        #
+        # The cache update is only meaningful in debug/single-process mode (where
+        # the worker + downloader live in-process). In multi-process mode the
+        # worker processes refresh their own fast_download_info independently, so
+        # skipping this here is correct -- the key was already validated and the
+        # real result is returned to the caller below regardless.
+        #
+        # Guard exactly like api_config_update() does further down this file.
         worker = current_app.stacks_worker
-        if worker.downloader.fast_download_key == test_key:
+        if worker is not None and worker.downloader is not None \
+                and worker.downloader.fast_download_key == test_key:
             worker.downloader.fast_download_info.update({
                 'available': True,
                 'downloads_left': result['downloads_left'],
