@@ -10,6 +10,14 @@ def download_from_mirror(d, mirror_url, mirror_type, md5, title=None, resume_att
         subfolder: Subfolder path to save file to (optional)
     """
     try:
+        if mirror_type == 'direct_url':
+            # The membership fast-download API returns a signed URL that serves the
+            # file itself (no HTML interstitial), so download it directly.
+            d.logger.info("Direct download from fast-download URL")
+            if hasattr(d, 'status_callback'):
+                d.status_callback("Downloading file...")
+            return d.download_direct(mirror_url, title=title, resume_attempts=resume_attempts, md5=md5, subfolder=subfolder)
+
         if mirror_type == 'slow_download':
             d.logger.debug("Accessing slow download (via cookies)")
 
