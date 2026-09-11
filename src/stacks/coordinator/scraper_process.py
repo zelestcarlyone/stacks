@@ -99,6 +99,16 @@ def scraper_process(config_path: Path, stop_event: Event) -> None:
                 incomplete_folder_path = config.get('downloads', 'incomplete_folder_path', default='/download/incomplete')
                 incomplete_dir = PROJECT_ROOT / incomplete_folder_path.lstrip('/')
 
+                # Get fast download (membership) config — needed so the scraper can
+                # use the fast-download JSON API, which is not behind DDoS-Guard
+                # and therefore works from datacenter/VPS IPs.
+                fast_config = {
+                    'enabled': config.get('fast_download', 'enabled', default=False),
+                    'key': config.get('fast_download', 'key'),
+                    'path_index': 0,
+                    'domain_index': 0
+                }
+
                 # Get proxy config
                 proxy_config = {
                     'enabled': config.get('proxy', 'enabled', default=False),
@@ -110,6 +120,7 @@ def scraper_process(config_path: Path, stop_event: Event) -> None:
                 downloader = AnnaDownloader(
                     output_dir=DOWNLOAD_PATH,
                     incomplete_dir=incomplete_dir,
+                    fast_download_config=fast_config,
                     flaresolverr_url=flaresolverr_url if flaresolverr_enabled else None,
                     flaresolverr_timeout=flaresolverr_timeout_ms,
                     proxy_config=proxy_config

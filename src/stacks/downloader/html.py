@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin, unquote
 from bs4 import BeautifulSoup
 from stacks.downloader.sites.zlib import parse_zlib_download_link, is_zlib_domain
 from stacks.constants import LEGAL_FILES, ANNAS_ARCHIVE_DOMAINS
@@ -317,13 +317,51 @@ def _get_download_links_single_domain(d, md5, domain):
         raise  # Re-raise to allow domain rotation
 
 
+def _filename_from_fast_url(url):
+    """Derive a usable filename from a fast-download URL.
+
+    Fast-download URLs end with a segment shaped like
+      <Title> -- <Author> -- <Year> -- ... -- <md5> -- Anna's Archive.<ext>
+    """
+    try:
+        last = unquote(url.split('/')[-1])
+    except Exception:
+        return "Unknown"
+    parts = [p.strip() for p in last.split(' -- ') if p.strip()]
+    if not parts:
+        return "Unknown"
+    ext_match = re.search(r'\.([A-Za-z0-9]{2,5})$', parts[-1])
+    ext = f".{ext_match.group(1)}" if ext_match else ""
+    title = parts[0]
+    if not title:
+        return "Unknown"
+    return f"{title}{ext}" if ext else title
+
+
 def get_download_links(d, md5):
     """
-    Get download links from Anna's Archive with automatic domain rotation.
+    Get download links from Anna's Archive.
 
-    This function will try different Anna's Archive domains until one succeeds.
-    When a domain works, it's saved for future use.
+    Membership first: the fast-download JSON API is NOT behind DDoS-Guard, so it
+    works from datacenter/VPS IPs where the HTML pages cannot be scraped. Falls
+    back to HTML scraping (with domain rotation) when the API is unavailable.
     """
+    try:
+        from stacks.downloader.fast_download import try_fast_download
+
+        ok, fast_url = try_fast_download(d, md5)
+        if ok and fast_url:
+            filename = _filename_from_fast_url(fast_url)
+            d.logger.info(f"Fast download API link acquired for {md5}: {filename}")
+            return filename, [{
+                'url': fast_url,
+                'type': 'direct_url',
+                'domain': urlparse(fast_url).netloc,
+                'text': 'Fast download (membership)',
+            }]
+    except Exception as e:
+        d.logger.warning(f"Fast download API unavailable, falling back to HTML scrape: {e}")
+
     try:
         return try_domains_until_success(_get_download_links_single_domain, d, md5)
     except Exception as e:
