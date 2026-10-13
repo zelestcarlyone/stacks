@@ -179,7 +179,7 @@ If you prefer running Stacks without Docker Compose, you can use the Docker CLI 
   ```
 ### User access rights
 
-By default, Stacks runs as  `root` inside the container. This is normal fo rmany Docker images, but means that any files created or mounted volumes will also belong to `root` on the host. 
+By default, Stacks runs as  `root` inside the container. This is normal for many Docker images, but means that any files created or mounted volumes will also belong to `root` on the host. 
 
 If your other pass can't access the downloaded files, or you prefer stricter permission control, you can tell Docker to run Stacks as a different user.
 
