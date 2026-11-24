@@ -39,6 +39,18 @@ def download_direct(d, download_url, title=None, total_size=None, supports_resum
             # Clean filename (remove invalid characters)
             filename = re.sub(r'[<>:"/\\|?*]', '_', title)
 
+        # ext4 caps a filename at 255 BYTES and a long CJK title eats 3 bytes per char, so a giant
+        # title crashes the write with Errno 36 (a Korean Harry Potter edition crash-looped like
+        # that 2026-11-23). Truncate the STEM by encoded bytes, keeping the extension and room for
+        # the " (1)" dedup suffix get_unique_filename may add.
+        stem, dot, ext = filename.rpartition('.')
+        if not dot:
+            stem, ext = filename, ''
+        suffix = f'.{ext}' if dot else ''
+        while len((stem + suffix).encode('utf-8')) > 240 and stem:
+            stem = stem[:-1]
+        filename = stem.rstrip('. ') + suffix
+
         # Validate extension - warn if suspicious but don't modify
         from stacks.constants import LEGAL_FILES
         file_ext = Path(filename).suffix.lower()
